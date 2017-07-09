@@ -1,0 +1,137 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\SetKwInput{KwIn}{Input}
+\renewcommand{\algorithmcfname}{Algoritmo}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ 
+\title{Auxiliar 10 - ``Dominios Discretos, Algoritmos Online y Aproximados"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+9 de Junio del 2017
+\end{center}
+\vspace{-1ex}
+
+%%ORDENAR PUNTOS EN EL PLANO CON DISTRIBUCION UNIFORME
+%%ORDENAR VALORES EN [0, n^k - 1]
+%%ORDENAR SEGUN DISTANCIA AL CENTRO, PUNTOS DEL CIRCULO UNITARIO
+%%vEM (?)
+%%RANK EN TIEMPO CTE Y ESPACIO o(n)
+%%EXPRESIONES REGULARES EN AUTOMATAS! (COMODIN)
+%%KNUTH MORRIS PRATT
+%%OPERACIONES EN SUFFIX TREES!
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Autómatas!}}}
+\begin{enumerate}[a)]
+    \item Dado un patrón $P$ de largo $m$ y un texto $T$ de largo $n$, ambos sobre el alfabeto binario, podemos encontrar una ocurrencia de $P$ en $T$ en tiempo $\mathcal{O}(n+m)$. Considere ahora que $P$ puede contener \textit{comodines}. Un caracter \textit{comodin} puede calzar con una cadena de largo arbitrario (incluyendo cero). Resuelva este problema en tiempo $\mathcal{O}(n+m)$.
+    \item Dada una expresión regular $R$ sobre un alfabeto finito $\Sigma$ construya su autómata $\mathcal{A}(R)$ equivalente en tiempo $\mathcal{O}(|R|)$.
+\end{enumerate}
+
+\problem {\large\underline{\textbf{k servidores, online}}}\\
+Considere el escenario donde tiene $k$ puntos (\textit{servidores}) en un espacio \textit{métrico} y una secuencia de puntos (\textit{peticiones}) que debe atender. Cada vez que llega una petición, un servidor debe moverse hacia esa posición para atenderla.\\
+El problema \textit{online} consiste en minimizar la distancia recorrida por todos los servidores luego de $n$ peticiones, sin saber la secuencia de puntos a atender.
+\begin{enumerate}[a)]
+    \item Muestre que para cualquier algoritmo su radio competitivo es al menos $k$.   
+    \item Consideremos ahora el problema de los $k$ servidores y sus peticiones en una línea. Muestre que el algoritmo de enviar al servidor más cercano no es competitivo.
+\end{enumerate}
+
+\problem {\large\underline{\textbf{Problema del Vendedor Viajero}}}\\
+De una $3/2$-aproximación para el problema del vendedor viajero \textit{métrico}.\\
+\textbf{Hint:} Puede considerar que encontrar el ``Emparejamiento Perfecto'' de costo mínimo es polinomial.
+\end{problems}
+
+
+ \newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\item 
+\begin{enumerate}[a)]
+\item La clave del problema consiste en notar que solo se nos pide encontrar una ocurrencia cualquiera del patrón en $T$ (no todas ellas). Para esto dividiremos $P$ en partes delimitadas por los comodines $*$ que contiene,
+\begin{align*}
+    P = P_{1}*P_{2}*\ldots * P_{r}
+\end{align*}
+, luego podemos obtener el autómata del algoritmo de búsqueda en texto\footnote{Con el algoritmo de construcción lineal pedido en la tarea 2.} para cada uno de estos $P_{i}$, todo esto en $\mathcal{O}(|P_{1}| + |P_{2}| + \ldots + |P_{r}|) = \mathcal{O}(|P|) = \mathcal{O}(m)$.\\
+Finalmente construimos el autómata de búsqueda de $P$ ``fusionando'' el estado final de $P_{i}$ con el inicial de $P_{i+1}$ (conservando las transiciones del inicial). Con esto tenemos un autómata que busca $P_{1}$, luego $P_{2}$, \ldots y finalmente $P_{r}$ y por lo tanto encontrando la primera aparición de $P$ en $T$. Como el algoritmo consiste en correr el autómata, toma $\mathcal{O}(n)$ teniendo un coste total de $\mathcal{O}(n+m)$.
+\item La construcción de Thompson que se puede encontrar en la sección 2.4 del apunte\\ \href{https://www.dcc.uchile.cl/~gnavarro/apunte.pdf}{https://www.dcc.uchile.cl/$\sim$gnavarro/apunte.pdf}, da un algoritmo recursivo que transforma una expresión regular en un autómata $\mathcal{A}(R)$ equivalente. Como la recursión en cada paso se deshace de un caracter, el número de llamados recursivos es $\mathcal{O}(|R|)$, finalmente como el trabajo no recursivo realizado por la función es $\mathcal{O}(1)$ el algoritmo es de tiempo $\mathcal{O}(|R|)$.
+\end{enumerate}
+\problem 
+\begin{enumerate}[a)]
+\item Sea $k$ y $A$ un algoritmo que resuelve el problema de los servidores. Considere el siguiente input: un espacio métrico con $k+1$ puntos (uno más que el número de servidores) y los servidores parten ubicados en los primeros $k$. Las peticiones $\sigma=\sigma_{1}\ldots\sigma_{r}$ serán aquellos puntos que $A$ no tiene cubierto en ese momento \demon (por palomar siempre existe uno de estos puntos) empezando por $k+1$.\\
+
+Con esto construiremos $k$ algoritmos que lo hacen ``mejor'' que $A$, $B_{1}, \ldots, B_{k}$. De modo que :
+\begin{itemize}
+    \item Antes de la primera petición $B_{i}$ manda al servidor que está en $i$ a $k+1$.
+    \item Queremos mantener el invariante que en cada petición todos los $B_{i}$ tienen cubierto a $\sigma_{i}$.
+    \item Para lograr lo anterior, cuando se pida $\sigma_{i-1}$ y $A$ lo cubra con un servidor que se encontraba en $\sigma_{i}$ (esto es así pues las peticiones fueron construidas de esta forma), existirá un único\footnote{Notar que este es otro invariante que mantienen los algoritmos} $B_{j}$ que no tiene cubierto $\sigma_{i}$ y este (luego de responder la petición $i-1$) lo cubrirá con el servidor que tiene en $\sigma_{i-1}$.
+    \item Con esto tenemos que la suma de los costos de los $B_{i}$ corresponden a los movimientos que se hacen antes de la primera petición, más los movimientos que hace exactamente uno de los $B_{i}$ luego de cada petición. Sin embargo, este último costo es el mismo que realiza $A$ (cuando $A$ mueve uno de sus servidores de $\sigma_{i}$ a $\sigma_{i-1}$ alguno de los $B_{i}$ ya lo hizo desde $\sigma_{i-1}$ a $\sigma_{i}$). Es decir,
+    \begin{align*}
+        \sum_{i=1}^k C_{B_{i}}(\sigma) &= C_{A} + \sum_{i=1}^k dist(i, k+1)\\
+        &\le C_{A} + k\max_i (dist(i, k+1))
+    \end{align*}
+    Finalmente debe existir uno de estos algoritmos que cumpla:
+    \begin{align*}
+        OPT \le C_{B_{j}}(\sigma) &\le \frac{1}{k}C_{A} + \max_i dist(i, k+1)
+    \end{align*}
+    ,por lo que $A$ es al menos $k$- competitivo.
+\end{itemize}
+\item Consideremos el input con los puntos de la recta numérica, los servidores inicialmente ubicados en $2$ y $4$ y la secuencia de peticiones $10, 1, 2, 1, 2, 1, 2, \ldots, 1, 2$ (repitiendo $1, 2$ $n$ veces). El algoritmo para la primera petición no se moverá y luego para las peticiones siguientes estará moviendo el servidor de la izquierda entre $1$ y $2$ teniendo un costo total de $2n$. Sin embargo el óptimo consiste en responder la primera petición y luego mover el servidor de la izquierda a $1$ a costo total $3$. Finalmente, como $n$ es un valor arbitrario, el algoritmo puede ser tan malo (respecto al óptimo) como queramos, por lo que no es competitivo.
+\end{enumerate}
+\problem En clases vimos que se puede obtener una $2$-aproximación del problema encontrando un árbol generador de costo mínimo y luego haciendo un recorrido DFS (limpiando los vértices repetidos en el recorrido) en el árbol. Para alcanzar el $3/2$ encontraremos un ``mejor'' camino a partir del árbol generador de costo mínimo $T^*$.\\
+
+Notemos que en $T^*$ hay un número par de vértices de grado impar (esto se cumple en todo grafo, por el lema del apretón de manos \nerd). Queremos agregarle exactamente una arista a todos estos nodos de manera que después de esto todos los vértices sean de grado par. \\
+Lo anterior lo podemos hacer encontrando un ``Emparejamiento Perfecto''\footnote{Conjunto de aristas que cubre todos los vértices considerados y que son disjuntas entre ellas.} de costo mínimo sobre estos nodos, llamémoslo $M^*$.\\
+
+Entonces en $T^*\cup M^*$ todos los vértices son de grado par y por lo tanto (\nerd) tiene un circuito euleriano (es aquel que pasa por todas las aristas) $C'$, finalmente nuestra aproximación será el ciclo $C^*$ obtenido luego de eliminar las repeticiones de $C'$. Luego:
+\begin{align*}
+    costo(C^*) \le costo(C') \le costo(T^*) + costo(M^*)
+\end{align*}
+Por un lado tenemos que $costo(T^*) \le costo(T) \le OPT$, siendo $T$ algún árbol generador, puesto que podemos sacarle una arista al ciclo óptimo y formar con esto un árbol generador.\\
+
+Por otro lado, consideremos un ciclo hamiltoniano óptimo de costo $OPT'$ sobre los vértices de grado impar de $T^*$, de este ciclo, se pueden extraer dos ``Emparejamientos perfectos'' de estos vértices $M_{1}$ y $M_{2}$, pero como $M^*$ es de costo mínimo tenemos que $costo(M^*) \le \frac{costo(M_{1})+ costo(M_{2})}{2} = \frac{OPT'}{2} \le \frac{OPT}{2}$ (donde la última desigualdad es válida gracias a la desigualdad triangular).\\
+
+Juntando estas observaciones obtenemos que:
+\begin{align*}
+    costo(C^*) \le \frac{3}{2}OPT
+\end{align*}
+\end{problems}
+\end{document}

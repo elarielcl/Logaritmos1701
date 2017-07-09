@@ -1,0 +1,191 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+\usepackage[spanish]{babel}
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\SetKwInput{KwIn}{Input}
+\renewcommand{\algorithmcfname}{Algoritmo}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabla}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Tarea 3 - Cubrimiento por Vértices Mínimo}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{Manuel Cáceres}
+\assistantt{Jaime Salas}
+\assistantt{Claudio Torres}
+
+\begin{document}
+\captionsetup[table]{name=Tabla}
+\captionsetup[table]{name=Figura}
+
+\maketitle
+\vspace{-1ex}
+\section{Introducción}
+El problema de encontrar el \textbf{Cubrimiento por Vértices Mínimo} (CVM), consiste en, dado un grafo simple\footnote{Un grafo \textit{simple} es aquel que no tiene bucles ni multiaristas.} y no dirigido\footnote{Un grafo \textit{no dirigido} es aquel en el que sus aristas no poseen dirección.} $G = (V,E)$ (donde $V$ es el conjunto de vértices del grafo, con $|V| = n$, y $E$ es el conjunto de aristas, con $|E| = m$), encontrar el subconjunto de vértices más pequeño $S^*\subseteq V$ que ``cubre'' $E$, es decir:
+\begin{align*}
+    S^* = argmin \{|S| \colon\ \ S\subseteq V \land \ \forall (u, v) \in E,\ \ (u \in S \lor v \in S)\}
+\end{align*}
+En clases de cátedras vimos una 2-aproximación para el problema, que consistía en recorrer las aristas del grafo y agregar al cubrimiento \textbf{ambos} vértices extremos, eliminando todas las aristas adyacentes a estos vértices e iterando el proceso hasta que ya no quedarán más aristas que cubrir.\\
+Además en clase  auxiliar vimos que la \textit{heurística} de ``ir tomando el vértice de mayor grado'', no es una $\rho$-aproximación para cualquier $\rho$ constante.\\
+
+El objetivo de esta tarea es implementar, evaluar y comparar en la práctica tres enfoques para encontrar una solución aproximada del CVM, los dos mencionados anteriormente, y un tercero que utiliza ambas ideas.\\
+
+
+Se espera que se implementen los algoritmos y se entregue un informe que indique claramente los siguientes puntos:
+\begin{enumerate}[1.]
+    \item Las \textit{hipótesis} escogidas antes de realizar los experimentos.
+    \item El \textit{diseño experimental}, incluyendo los detalles de la implementación de los algoritmos, la generación de las instancias y las medidas de rendimiento utilizadas.
+    \item La \textit{presentación de los resultados} en forma de una descripción textual, tablas y/o gráficos.
+    \item El \textit{análisis e interpretación} de los resultados.
+\end{enumerate}
+\section{Los Algoritmos}
+A continuación se describirá cada uno de los tres algoritmos que se deben implementar y comparar en esta tarea. Los algoritmos están descritos en pseudocódigo, los detalles de su implementación tanto como las estructuras utilizadas deben ser escogidas apropiadamente y especificadas en su informe.
+\subsection*{2-aproximación}
+La idea general detrás de este algoritmo consiste en recorrer las aristas del grafo en algún orden no especificado y tomar sus extremos como parte del cubrimiento, eliminando del proceso que continúa, todas las aristas incidentes a alguno de estos vértices.\\
+
+El pseudocódigo del algoritmo es el siguiente:\\
+
+\begin{algorithm}[H]
+
+\SetAlgoLined
+\KwIn{$G = (V, E)$}
+ $E'\gets E$\;
+ $C\gets \emptyset$\;
+ \While{$E' \not = \emptyset$}{
+  Tomar $(u, v) \in E'$\;
+  $C\gets C \cup \{u, v\}$\;
+  $E' \gets E' \setminus \{e \in E' \colon \text{$u$ es incidente a $e$ o $v$ lo es}\}$\;
+ }
+ \KwRet{C}
+ \caption{Entrega una 2-aproximación al problema de Cubrimiento por Vértices Mínimo, es decir, $|C|\le 2|S^*|$, donde $S^*$ es la solución del problema.}
+ 
+\end{algorithm}
+
+
+\subsection*{Heurística del grado mayor}
+La idea detrás de esta heurística es ir escogiendo los vértices que cubran la mayor cantidad de aristas, es decir, los que tengan mayor grado y hacer esto hasta que no queden más aristas por cubrir.
+\newpage
+El pseudocódigo del algoritmo es el siguiente:\\
+
+\begin{algorithm}[H]
+
+
+\SetAlgoLined
+\KwIn{$G = (V, E)$}
+ $E'\gets E$\;
+ $C\gets \emptyset$\;
+ \While{$E' \not = \emptyset$}{
+  Tomar $u \in (V\setminus C)$ de mayor grado en $G'=(V\setminus C, E')$\;
+  $C\gets C \cup \{u\}$\;
+  $E' \gets E' \setminus \{e \in E' \colon \text{$u$ es incidente a $e$}\}$\;
+ }
+ \KwRet{C}
+ \caption{No entrega una $\rho$-aproximación al problema de Cubrimiento por Vértices Mínimo, para ninguna constante $\rho$.}
+ 
+ 
+\end{algorithm}
+
+
+\subsection*{2-aproximación mejorada}
+Finalmente, la idea detrás de este último algoritmo consiste en ir añadiendo pares de vértices en una arista, para así mantener la propiedad de ser una 2-aproximación, pero al mismo tiempo elegir estos vértices según el criterio del grado máximo.\\
+
+El pseudocódigo del algoritmo es el siguiente:\\
+
+\begin{algorithm}[H]
+
+\SetAlgoLined
+\KwIn{$G = (V, E)$}
+ $E'\gets E$\;
+ $C\gets \emptyset$\;
+ \While{$E' \not = \emptyset$}{
+  Tomar $u \in (V\setminus C)$ de mayor grado en $G'=(V\setminus C, E')$\;
+  Tomar $v \in N(u) = \{x \in V\setminus C \colon x\text{ es adyacente a }u \text{ en } G'\}$ de mayor grado en $G'$\;
+  $C\gets C \cup \{u, v\}$\;
+  $E' \gets E' \setminus \{e \in E' \colon \text{$u$ es incidente a $e$ o $v$ lo es}\}$\;
+ }
+ \KwRet{C}
+ \caption{Este algoritmo es una 2-aproximación del problema CVM que impone un orden en el que se escogen las aristas respecto al primer algoritmo presentado, según el criterio del grado máximo.}
+ 
+ 
+\end{algorithm}
+
+\subsection*{Nota}
+En los algoritmos en donde se escoge un vértice de mayor grado, si hay más de uno se elige cualquiera de ellos.
+\section{Pruebas y Datos}
+En esta tarea se pide comparar el tamaño de los resultados dados por las tres aproximaciones antes explicadas. Para esto tendrá que correr todas las implementaciones en grafos de distintos tamaños y orígenes explicados más adelante.\\
+Recuerde repetir los experimentos para los distintos tamaños y orígenes de manera de obtener promedios confiables, tampoco olvide documentar los intervalos de confianza de sus resultados.
+\subsection*{Grafos Aleatorios}
+Construya grafos de $n = 2^i$ con $i \in \{10, 11, \ldots, 20\}$ vértices y genere las aristas según el siguiente proceso probabilístico:\\
+
+\begin{algorithm}[H]
+
+\SetAlgoLined
+\KwIn{$(V,p)$}
+ $E\gets \emptyset$\;
+ \For{$(u, v) \in \binom{V}{2}$}{
+  Con probabilidad $p$ hacer:
+    $E\gets E \cup \{(u, v)\}$\;
+ }
+ \KwRet{$G = (V, E)$}
+
+ 
+\end{algorithm}
+Escoja al menos 5 valores de $p$ distribuidos en $[1/n,  1]$, escoja los valores de $p$ de modo de poner a prueba sus hipótesis.
+\subsection*{Grafos Externos}
+Utilice grafos externos, es decir, grafos obtenidos de una fuente externa de datos (no construidos por usted). Utilice al menos $10$ grafos distintos. En la sección  \ref{Links} puede encontrar algunos orígenes de datos, preprocéselos si es necesario para obtener resultados significativos, indique esto procedimientos en su informe. Indique los tamaños de los grafos con los que se trabajó y su origen. Especifique también si estos cumplen con alguna propiedad en particular. Base la discusión de sus resultados en estos parámetros, de ser posible escoja los grafos de manera de poner a prueba sus hipótesis.
+\newpage
+\section{Entrega de la Tarea}
+\begin{itemize}
+    \item La tarea puede realizarse en grupos de a lo más 2 personas.
+    \item No se permiten atrasos.
+    \item Para la implementación puede utilizar C, C++ o Java. Para el informe se recomienda utilizar \LaTeX .
+    \item Siga buenas prácticas (good coding practices) en sus implementaciones.
+    \item Escriba un informe claro y conciso. Las ponderaciones del informe y la implementación en su nota final son las mismas.
+    \item Tenga en cuenta las sugerencias realizadas en la primera clase auxiliar y en los archivos subidos a U-Cursos sobre la forma de realizar y presentar experimentos.
+    \item La entrega será a través de U-Cursos y deberá incluir el informe junto con el código fuente de la implementación (y todas las indicaciones necesarias para su ejecución).
+\end{itemize}
+\section{Links}\label{Links}
+Los siguientes links son fuentes de datos externas que puede utilizar en su tarea:
+\begin{itemize}
+    \item \href{https://users.dcc.uchile.cl/~jfuentess/datasets/graphs.php}{https://users.dcc.uchile.cl/~jfuentess/datasets/graphs.php}
+    \item \href{http://www.info.univ-angers.fr/pub/porumbel/graphs/}{http://www.info.univ-angers.fr/pub/porumbel/graphs/}
+    \item \href{http://mat.gsia.cmu.edu/COLOR/instances.html}{http://mat.gsia.cmu.edu/COLOR/instances.html}
+    \item \href{https://turing.cs.hbg.psu.edu/benchmarks/clique.html}{https://turing.cs.hbg.psu.edu/benchmarks/clique.html}
+\end{itemize}
+
+
+
+\end{document}
+

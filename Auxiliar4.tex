@@ -1,0 +1,179 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage{algorithmic}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Auxiliar 4 - ``Memoria Externa"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+17 de Abril del 2017
+\end{center}
+\vspace{-1ex}
+
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Relación}}}\\
+Dada una relación binaria $\mathcal{R} \subseteq \{1, \ldots, k \} \times \{1, \ldots, k \}$, representada como un archivo secuencial de sus pares $(i, j)$, construya algoritmos eficientes (considerando
+que $N \gg M$) para determinar si la relación es:
+\begin{enumerate}[a)]
+    \item Refleja
+    \item Simétrica
+\end{enumerate}
+\problem {\large\underline{\textbf{Arreglos}}}\\
+Se tienen dos arreglos $A$ y $B$ de largo $N$ almacenados en memoria externa. Si bien son diferentes, ambos contienen los enteros entre $1$ y $N$. Se desea construir el arreglo C, dado por $C[i] = A[B[i]]$. Diseñe un algoritmo eficiente para esto, y analícelo.
+\problem {\large\underline{\textbf{Mayoría}}}\\
+Considere una lista $L$ de $N$ elementos en memoria externa. Diseñe un algoritmo eficiente para encontrar un elemento que tenga la mayoría absoluta (es decir, que aparezca más de $N/2$ veces), y reportar su frecuencia. Si no existe tal elemento debe reportarse \texttt{no}.
+\problem {\large\underline{\textbf{Skyline}}}\\
+Se nos entrega un conjunto $P$ de $N$ puntos en $\mathbb{R}^d$ en \textit{posición general}; es decir, ningún par de puntos comparte el mismo valor en alguna dimensión. Considere que $N \gg M$. Dado un punto $p \in \mathbb{R}^d$ , llamaremos $p[i]$ a su $i$-ésima coordenada. Un punto $p_{1}$ domina a otro punto $p_{2}$ (denotado como $p_{1} \prec p_{2}$) si se cumple $p_{1}[i] < p_{2}[i], \forall i = 1, \ldots, d$.\\
+Se nos pide calcular el \textit{skyline} de $P$ , denotado como $SKY (P)$, que incluye todos los puntos de $P$ que no son dominados por ningún otro:
+\begin{equation*}
+SKY(P) = \{p \in P | \not \exists p' \in P, p' \prec p\}    
+\end{equation*}
+\begin{enumerate}[a)]
+\item Resuelva el problema para $d = 2$ usando $\mathcal{O}(n \log_{m} n)$ operaciones de disco.
+\item Resuelva el problema, ahora para $d = 3$. Llegue a la misma cota para la cantidad de operaciones de disco que en el caso anterior.
+\end{enumerate}
+\end{problems}
+
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\problem {\large\underline{\textbf{Relación}}}\\
+Para esta pregunta asumiremos que no se repiten pares.
+\begin{enumerate}[a)]
+\item Basta tener un contador iniciado en $0$, escanear todo el input bloque por bloque y cuando encontramos un par de la forma $(i,i)$ aumentamos el contador. Cuando terminamos de escanear respondemos que la relación es refleja si el contador es igual a $k$, no en caso contrario. Como solo escaneamos el input una vez hacemos $n=\frac{N}{B}$ llamadas a disco. \flash
+\item Con el siguiente algoritmo:
+\begin{itemize}
+    \item Hacer una copia de los pares, pero con sus coordenadas invertidas. $\mathcal{O}(n)$.
+    \item Ordenar tanto el original como la copia lexicográficamente (es decir, por la primera coordenada y en caso de empate mirar la segunda coordenada para decidir). $\mathcal{O}(n\log_{m}n)$ , con $m = \frac{M}{B}$.
+    \item Comparar que tanto la copia como el original sean iguales. $\mathcal{O}(n)$
+\end{itemize}
+Por lo tanto, el costo del algoritmo es $\mathcal{O}(n\log_{m}n)$ llamadas a disco.
+\end{enumerate}
+\problem {\large\underline{\textbf{Arreglos}}}\\
+Con el siguiente algoritmo de costo $\mathcal{O}(n\log_{m}n)$:
+\begin{itemize}
+    \item Generar archivo con los pares $(i, B[i])$. $\mathcal{O}(n)$
+    \item Ordenar el archivo por la segunda coordenada. $\mathcal{O}(n\log_{m}n)$
+    \item Reemplazar en el archivo la segunda coordenada por $A$. $\mathcal{O}(n)$
+    \item Ordenar por la primera coordenada. $\mathcal{O}(n\log_{m} n)$
+    \item Generar archivo con las segundas coordenadas, que es $C$. $\mathcal{O}(n)$
+\end{itemize}
+Este algoritmo hace $\mathcal{O}(n\log_{m} n)$ llamadas a disco.\\
+Veamos que como los índices que ponemos y $A$ y $B$ contienen una permutación del $1$ al $N$, siempre se cumple que para un $i$ cualquiera:
+\begin{itemize}
+    \item En la primera generación  se ve: $\underbrace{\ldots (i, B[i])}_\text{posición $i$}\ldots$
+    \item Después del primer orden: $\underbrace{\ldots (i, B[i])}_\text{posición $B[i]$}\ldots$
+    \item Después de poner $A$: $\underbrace{\ldots (i, A[B[i]])}_\text{posición $B[i]$}\ldots$
+    \item Después del segundo orden: $\underbrace{\ldots (i, A[B[i]])}_\text{posición $i$}\ldots$ \magic
+\end{itemize}
+\problem {\large\underline{\textbf{Mayoría}}}\\
+El siguiente algoritmo que escanea el input 2 veces por bloques (por lo que cuesta $\mathcal{O}(n)$ llamadas a disco) resuelve el problema:\\
+
+\begin{algorithmic}
+\STATE $i\gets 0$
+\FOR{$x\in L$}
+\IF {$i==0$} 
+        \STATE $m\gets x$
+        \STATE $i\gets 1$        
+\ELSE
+        \IF {$x==m$}
+                \STATE $i\gets i+1$
+        \ELSE
+                \STATE $i\gets i-1$
+        \ENDIF
+\ENDIF 
+\ENDFOR
+\end{algorithmic}
+\begin{algorithmic}
+\STATE $i\gets 0$
+\FOR{$x\in L$}
+    \IF {$x==m$}
+            \STATE $i\gets i+1$
+    \ENDIF
+\ENDFOR
+\IF {$i>N/2$}
+            \RETURN $m,i$
+\ELSE 
+            \RETURN $no$
+\ENDIF
+\end{algorithmic}
+\magic \magic. Veamos que el primer ciclo presenta a $m$ como un candidato a ser mayoría absoluta y el segundo ciclo verifica que este elemento realmente lo sea.\\
+Si no existe mayoría absoluta el algoritmo responde correctamente $no$ pues el segundo ciclo desecha el candidato $m$ presentado por el primero.\\
+Si existe un elemento $K$ que es mayoría absoluta, en este caso imaginemos un índice $j$ que no es parte del algoritmo pero se actualiza a medida que este avanza. j aumenta en 1 si el elemento escaneado es igual a $K$ y disminuye en 1 si es distinto a $K$. Observemos que cuando $j>0$ se cumple que el $i$ del algoritmo es $>0$ y el $m=K$ (pues significa que se han visto más $K$s que otro símbolo). Finalmente cuando se terminan las iteraciones $j>0$, pues $K$ es mayoría absoluta, y por lo tanto $m=K$, el algoritmo lo postula como candidato y luego lo corrobora.
+\problem {\large\underline{\textbf{Skyline}}}\\
+\begin{enumerate}[a)]
+    \item ($d=2$).\\
+    El siguiente algoritmo computa el $SKY$:
+    \begin{algorithmic}
+    \STATE $SKY \gets \emptyset$
+    \STATE $y_{min} \gets \infty$
+    \STATE $Sort_{x}(P)$
+    \FOR{$i = $1\ldots N}
+        \STATE $(x,y) \gets p_{i}$
+        \IF{$y<y_{min}$}
+            \STATE $y_{min} \gets y$
+            \STATE $SKY.add(p_{i})$
+        \ENDIF
+    \ENDFOR
+    \end{algorithmic}
+    El mayor costo del algoritmo se realiza cuando se ordena por la coordenada $x$, por lo que el número de llamadas a disco es $\mathcal{O}(n\log_{m}n)$. Veamos que cuando un punto es dominado por otro $p$ se cumplirá que no es agregado a $SKY$, pues antes de analizarlo (dado que están ordenados por $x$) se debió haber seteado $y_{min}$ como el $y$ del punto o como algo menor que esto, por lo que no cumple la condición del \textbf{if}. Por otro lado si el punto no es dominado, ningún punto menor que el en la coordenada $x$ debería ser menor también en la coordenada $y$, por lo que a l ser procesado cumple la condición del \textbf{if} y es agregado al $SKY$.
+    
+    \item En el caso 3D, nuevamente ordenamos por la coordenada $x$ y resolvemos el problema usando un algoritmo recursivo que:
+    \begin{itemize}
+        \item Pediremos que el resultado de la recursión sea calcular el $SKY$ como una lista ordenada por coordenada $y$.
+        \item El caso base ocurre cuando el input cabe en memoria principal, es decir $N<M$ y en este caso basta traer los datos a memoria en $\mathcal{O}(n)$ y computar el resultado en memoria interna.
+        \item Para el paso recursivo lo que hacemos es particionar los puntos $P$ en $\Theta(M/B) = \Theta(m)$ partes iguales $P_{1},\ldots,P_{\Theta(m)}$. Luego obtenemos recursivamente $SKY(P_{1}),\ldots, SKY(P_{\Theta(m)}$. Finalmente lo que hacemos es escanear estos $SKY$ según coordenada creciente de $y$, y manteniendo un buffer en memoria de $\Theta(B)$ de cada uno de ellos. Además mantenemos un arreglo $Z_{min}$ que en $Z_{min}[i]$ tiene el menor valor de $z$ observado para los puntos ya escaneados de $SKY(P_{i})$. Entonces si analizo el punto $p_{i} \in SKY(P_{i})$ este será parte del $SKY(P)$ ssi $\forall j < i,\ p_{i}[3] < Z_{min}[j]$. Lo anterior se cumple gracias a que comenzamos ordenando por la coordenada $x$ y además estamos escaneando los puntos por la coordenada $y$. Este proceso toma tiempo $\mathcal{O}(n)$.
+    \end{itemize}
+    La ecuación de recurrencia correspondiente es:
+    \begin{align*}
+        T(N) = 
+        \begin{cases} 
+      \mathcal{O}(n) & N < M \\ mT(N/m) + \mathcal{O}(n) & si\ no
+   \end{cases}
+    \end{align*}
+    Si resolvemos obtenemos $T(N) \in \mathcal{O}(n\log_{m}n)$. \wedidit
+\end{enumerate}
+\end{problems}
+\end{document}
+

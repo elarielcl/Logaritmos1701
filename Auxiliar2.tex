@@ -1,0 +1,213 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Auxiliar 2 - ``Técnicas de Análisis y Diseño"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+31 de Marzo del 2017
+\end{center}
+\vspace{-1ex}
+
+
+\begin{problems}
+%Bienvenida
+\section*{Dividir para reinar (DCC)}
+\problem {\large\underline{\textbf{Inversiones}}}\\
+Una inversión en un arreglo corresponde a un par de elementos $a[i] > a[j]$ con $i < j$.\\
+Considere el problema de contar el número de inversiones de un arreglo.
+\begin{enumerate}[a)]
+    \item Diseñe un algoritmo que haga $\mathcal{O} (n^2)$ comparaciones.
+    \item Diseñe un algoritmo que haga $\mathcal{O} (I + n)$ comparaciones (donde $I$ es el número de inversiones).\\ \textbf{Hint}: Piense en ordenar.
+    \item Diseñe un algoritmo que haga $\mathcal{O} (n\log n)$ comparaciones.\\ \textbf{Hint}: Piense en ordenar.
+\end{enumerate}
+\problem {\large\underline{\textbf{Multiplicación de Naturales}}}\\
+Considere el problema de multiplicar 2 números Naturales de $n$ dígitos (en este problema las operaciones básicas serán de sumas, restas y multiplicaciones de números de 1 dígito).
+\begin{enumerate}[a)]
+    \item Diseñe un algoritmo que haga $\mathcal{O}(n^2)$ operaciones básicas.
+    \item Diseñe un algoritmo del tipo ``DCC'' que resuelva el problema. ¿Cuál es su costo? ¿Se puede mejorar?
+\end{enumerate}
+\problem {\large\underline{\textbf{Multiplicación de Matrices}}}\\
+Considere el problema de multiplicar 2 Matrices de dimensiones $n\times n$.
+\begin{enumerate}[a)]
+    \item Diseñe un algoritmo de costo $\mathcal{O}(n^3)$.
+    \item Diseñe un algoritmo del tipo ``DCC'' que resuelva el problema. ¿Cuál es su costo? ¿Se puede mejorar?
+\end{enumerate}
+\newpage
+\section*{Programación dinámica}
+\problem {\large\underline{\textbf{Subsecuencia palindrómica más larga}}}\\
+Diseñe un algoritmo para encontrar el largo de la subsecuencia más larga de un String $X[1,\ldots,n]$ que es un palíndrome. ¿Cuál es su costo?
+
+\problem {\large\underline{\textbf{Árbol binario de búsqueda óptimo}}}\\
+Un árbol binario de búsqueda $T$ que tiene como elementos los números $\{1,\ldots,n\}$ cada uno de los cuales tiene probabilidad de acceso $w_{1},\ldots,w_{n}$, es óptimo si minimiza el valor:
+\begin{align*}
+    \sum_{i=1}^{n}w_{i}(profundidad_{T}(i) + 1)
+\end{align*}
+Diseñe un algoritmo que encuentre el costo del árbol binario de búsqueda óptimo. ¿Cuál es su costo?
+\end{problems}
+
+
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\problem {\large\underline{\textbf{Inversiones}}}\\
+\begin{enumerate}[a)]
+    \item El algoritmo que mantiene un contador y revisa todos los pares de elementos en el arreglo aumentando en $1$ el contador si corresponde a una inversión realiza $\mathcal{O}(n^2)$ comparaciones.\flash
+    \item Si pensamos en el algoritmo InsertionSort, cada \textit{swap} del algoritmo repara exactamente una inversión (pues se hacen entre elementos consecutivos) y considerando que cada inserción puede comparar a lo más un par de elementos no invertidos, el algoritmo hace $\mathcal{O}(I+n)$ comparaciones.\flash
+    \item Usaremos MergeSort, pero le agregaremos que este cuente y retorne la cantidad de inversiones del arreglo que está procesando. Para esto recordemos que MergeSort divide el arreglo en dos mitades de igual tamaño:
+    \begin{itemize}
+        \item Recursivamente ordenaremos estas mitades y obtenemos las inversiones en ellas, digamos $i_{i}$ e $i_{d}$.
+        \item Hacemos el \textit{merge} entre las dos mitades iniciando al mismo tiempo un contador $i_{c} \gets 0$ que se encargará de guardar el número de inversiones cruzadas entre ambas mitades. Al hacer el \textit{merge} si elegimos un elemento de la mitad izquierda dejamos $i_{c}$ tal cual, sin embargo, si escogemos un elemento de la mitad derecha, significa que este elemento es menor a todos los elementos que quedan por escanear en la mitad izquierda por lo que aumentamos el contador en $i_{c} \gets i_{c} + elementos\ no\ mergeados\ en\ mitad\ izquierda$.
+        \item Retornamos el arreglo ordenado y el número de inversiones $i_{i}+i_{d}+i_{c}$.
+    \end{itemize}
+\end{enumerate}
+\problem {\large\underline{\textbf{Multiplicación de Naturales}}}\\
+\begin{enumerate}[a)]
+    \item El algoritmo de colegio que para multiplicar dos números toma cada dígito de uno y lo multiplica por el otro número (para esto lo multiplica con cada dígito del otro) ,sumando luego estos resultados toma $\mathcal{O}(n^2)$.
+    \item Si los números a multiplicar con $x$ e $y$, y la primera mitad de dígitos de $x$ es $a$ y la segunda mitad es $b$ y del mismo modo que $c$ y $d$ son de $y$, entonces se cumple que:
+    \begin{align*}
+        x\cdot y = (10^{n/2}a + b) \cdot (10^{n/2}a + b) = 10^nac + 10^{n/2}(ad+bc) + bd
+    \end{align*}
+    Notemos que el problema de multiplicar $2$ números de $n$ dígitos ($T(n)$) se transforma en un problema de multiplicar números de $n/2$ dígitos y sumar estos resultados ($\mathcal{O}(n)$), es decir:
+    \begin{align*}
+        T(n) = 4T(n/2) + \mathcal{O}(n)
+    \end{align*}
+    Por teorema maestro concluimos que $T(n) \in \mathcal{O}(n^2)$.\\
+    
+    Si ahora hacemos las siguientes multiplicaciones:
+    \begin{align*}
+        A &= ac\\
+        B &= bd\\
+        C &= (a+b)(c+d)
+    \end{align*}
+    Se cumple que:
+    \begin{align*}
+        10^nac + 10^{n/2}(ad+bc) + bd = 10^nA + 10^{n/2}(C-A-B) + B
+    \end{align*}
+    Y por lo tanto ahora tenemos que:
+    \begin{align*}
+        T(n) = 3T(n/2) + \mathcal{O}(n)
+    \end{align*}
+    Concluyendo por teorema maestro que $T(n) \in \mathcal{O}(n^{\sim 1.59})$.
+\end{enumerate}
+\problem {\large\underline{\textbf{Multiplicación de Matrices}}}\\
+ \begin{enumerate}[a)]
+     \item El algoritmo de multiplicación de matrices que por cada elemento de la nueva matriz hace el producto punto entre la fila y la columna correspondiente de las matrices multiplicadas realiza $\mathcal{O}(n^3)$ operaciones. \flash
+     \item 
+     \begin{itemize}
+         \item Si ahora escribimos las matrices originales como la unión de 4 submatrices de la mitad de las dimensiones originales:
+     \begin{align*}
+         X = \begin{pmatrix}
+           A & B \\
+            C & D
+         \end{pmatrix} &,\quad Y = 
+         \begin{pmatrix}
+           E & F \\
+            G & H
+         \end{pmatrix}\\
+     \end{align*}
+     , se cumple que
+     \begin{align*}
+         X\cdot Y = \begin{pmatrix}
+           AE + BG & AF + BH \\
+            CE + DG & CF + DH
+         \end{pmatrix}
+         \end{align*}
+        , es decir, reducimos nuestro problema de tamaño $n$ a 8 problemas de tamaño $n/2$ más el trabajo de sumar matrices de $\mathcal{O}(n^2)$. Esto queda modelado por la ecuación:
+        \begin{align*}
+            T(n) = 8T(N/2) + cn^2
+        \end{align*}
+        Finalmente por teorema maestro se obtiene $T(n) \in \mathcal{O}(n^3)$
+        \item Volker Strassen publica en 1969 una manera alternativa de calcular el producto de las matrices. Teniendo en cuenta la misma división en submatrices del punto anterior calcula las siguientes matrices:
+        \begin{itemize}
+            \item $P_{1} = A(F - H)$
+            \item $P_{2} = (A + B)H$
+            \item $P_{3} = (C + D)E$
+            \item $P_{4} = D(G - E)$
+            \item $P_{5} = (A + D)(E + H)$
+            \item $P_{6} = (B - D)(G + H)$
+            \item $P_{7} = (A - C)(E + F)$
+        \end{itemize}
+        De modo que
+        \begin{align*}
+         X\cdot Y = \begin{pmatrix}
+           P_{3} + P_{4} - P_{2} + P_{6} & P_{1} + P_{2} \\
+            P_{3} + P_{4} & P_{1} + P_{5} - P_{3} - P_{7}
+         \end{pmatrix}
+         \end{align*}
+         , por lo que en este caso solo se realizan 7 problemas de tamaño $n/2$ y un trabajo de sumas y restas de $\mathcal{O}(n^2)$. Lo que se modela con:
+         \begin{align*}
+            T(n) = 7T(N/2) + cn^2
+         \end{align*}
+         , que por teorema maestro es $\mathcal{O}(n^{\log_{2}7}) = \mathcal{O}(n^{\approx 2.81})$
+        \end{itemize}
+ \end{enumerate}
+\problem {\large\underline{\textbf{Subsecuencia palindrómica más larga}}}\\
+Sea $L(i,j)$ el largo de la subsecuencia palindrómica más larga para $X[i\ldots j], i\le j$, estamos interesados en $L(1,n)$ y para calcularla lo haremos llenando una tabla de $L(i,j) \forall 1\le i\le j \le n$, lo que es posible pues el problema tiene subestructura óptima regida por la siguiente ecuación:
+\begin{align*}
+    L(i,j) &= 
+    \begin{cases} 
+      1 & if\ i = j \\
+      2 & elif\ i = j-1 \land X[i]=X[j]\\
+      2+L(i+1,j-1) & elif\ X[i]=X[j]\\
+      max(L(i+1,j), L(i,j-1))& else
+   \end{cases}
+\end{align*}
+Finalmente como el número de subproblemas es $\mathcal{O}(n^2)$ y resolver cada subproblema teniendo los mas chicos es $\mathcal{O}(1)$ el algoritmo derivado de la ecuación basado en programación dinámica es de costo $\mathcal{O}(n^2)$.
+\problem {\large\underline{\textbf{Árbol binario de búsqueda óptimo}}}\\
+Definimos $c(i,j)$ como el costo del árbol binario de búsqueda óptimo entre los elementos $i$ y $j$ y lo que queremos obtener finalmente es $c(1,n)$.\\
+
+Identificamos luego que $c$ tiene subsestructura óptima (pues el árbol binario de búsqueda óptimo estará compuesto por una raíz y 2 subárboles binarios de búsqueda óptimos), dada por la siguiente ecuación:
+\begin{align*}
+    c(i,j) =  \begin{cases} 
+      w_{i} & i = j\\
+      \min_{i\le r\le j}\{c(i,r-1)+c(r+1,j) + \sum_{k=i}^j w_{k}\} & i < j
+   \end{cases}
+\end{align*}
+, donde el costo del árbol con solo un elemento es simplemente su probabilidad de acceso, y el costo del árbol entre los elementos $i$ y $j$ es el mínimo eligiendo $r$ como la raíz, calculando el costo de los subárboles restantes y sumando las probabilidades de acceso de todos los elementos (por la raíz y porque los demás elementos descienden un nivel).\\
+
+Finalmente podemos resolver este problema con ``memoization'' (tabla de caché) o construyendo las soluciones bottom-up (programación dinámica).\\
+El costo del algoritmo estará dado entonces por la multiplicar el número de subproblemas por el tiempo para resolver cada subproblema estando los más chicos resueltos ($\mathcal{O}(n)$, pues el mínimo se calcula entre $i$ y $j$ que pueden ir de 1 a $n$), es decir $\mathcal{O}(n^2) \cdot \mathcal{O}(n) = \mathcal{O}(n^3)$.
+\end{problems}
+\end{document}
+

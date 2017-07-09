@@ -1,0 +1,138 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+\usepackage[latin]{babel}
+
+\renewcommand{\figurename}{Figura}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Tarea 1 - Intersección de segmentos ortogonales}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{Manuel Cáceres}
+\assistantt{Jaime Salas}
+\assistantt{Claudio Torres}
+
+\begin{document}
+\maketitle
+\vspace{-1ex}
+\section{Introducción}
+El problema de ``Intersección de segmentos ortogonales'' consiste en,  dado un conjunto de segmentos de línea horizontales y verticales, encontrar y reportar todos los puntos de intersección existentes entre ellos. Estamos interesados en resolver instancias en las cuales el problema es tan grande que no puede ser resuelto en la memoria interna del computador, para lo cual usaremos un algoritmo de ordenación en memoria externa y el algoritmo ``Distribution Sweep'' que logra su objetivo al mezclar los paradigmas de ``distribution'', usado también para ordenar, y ``sweeping'', o barrido, utilizado en varios problemas de computación geométrica.\\
+
+
+Se espera que se implementen los algoritmos, se realicen los experimentos correspondientes y se entregue un informe que indique claramente los siguientes puntos:
+\begin{enumerate}[1.]
+    \item Las hipótesis escogidas antes de realizar los experimentos.
+    \item El diseño experimental, incluyendo los detalles de la implementación de los algoritmos, la generación de instancias y las medidas de rendimiento utilizadas.
+    \item La presentación de los resultados en forma de una descripción textual, tablas y/o gráficos.
+    \item El análisis e interpretación de los resultados.
+\end{enumerate}
+\section{Los Algoritmos}
+\subsection{Ordenación}
+\subsubsection{MergeSort}
+El algoritmo MergeSort para memoria externa visto en cátedras consiste de dos fases:
+\begin{itemize}
+    \item Una primera fase de \textit{creación de ``runs''}, en la cual se crean $\Theta(n/m)$ ``runs'' ordenados en memoria interna y puestos nuevamente en memoria externa.
+    \item Una segunda fase de \textit{merge}, donde en cada paso se mezclan $\Theta(m)$ ``runs'' de igual tamaño poniendo el resultado nuevamente en memoria externa. Para lograr este objetivo, se manejan $\Theta(m)$ buffers de input de los ``runs'' y un buffer de output (todos de tamaño $B$).
+\end{itemize}
+Este algoritmo alcanza la cota inferior de ordenación en memoria externa $\Theta(n\log_{m}n)$.
+\subsubsection{DistributionSort}
+Por otro lado el algoritmo ``DistributionSort'' es un algoritmo recursivo que usa $S-1$ pivotes para particionar los datos en $S$ ``buckets'' disjuntos, es decir, escoge los pivotes $e_{1}, \ldots, e_{S-1}$ de los datos y distribuye los elementos en estos $|\{(-\infty , e_{1}),\ [e_{1}, e_{2}),\ \ldots , [e_{S-2}, e_{S-1}),\ [e_{S-1}, \infty)\}|= S$ ``buckets''. Finalmente hace lo mismo recursivamente en cada uno de estos ``buckets''. \\
+De manera más detallada el algoritmo:
+\begin{itemize}
+    \item Escoge $S-1$ pivotes, lo que genera $S$ ``buckets''. Para encontrar estos pivotes usaremos el siguiente procedimiento probabilístico que asegura que cada ``bucket'' tendrá $\mathcal{O}(N/S)$ elementos:
+        \begin{enumerate}
+            \item Tomamos una muestra aleatoria de $S \log S$ elementos de los datos
+            \item Ordenamos estos elementos
+            \item Los pivotes serán los $\log S$-ésimos elementos de este orden
+        \end{enumerate}
+    \item Poner cada dato del input en su ``bucket'' correspondiente. Para lograr esto tendremos un buffer de input y $\Theta(\min\{m,n/m\})$ buffers de output (todos de tamaño $B$).\footnote{Notar que esto significa que $S=\min\{m,n/m\}$}
+    
+    \item Recursivamente aplicar el algoritmo en cada uno de los ``bucket'' hasta que el tamaño de los ``buckets'' sea $\le M$ en cuyo caso se ordena en memoria interna.
+\end{itemize}
+Este algoritmo también alcanza la cota inferior de ordenación en memoria externa pues en cada nivel de la recursión el tamaño de los ``buckets'' se reduce en un factor de $S$, por lo que la profundidad de la recursión es $\log_{S} n$. Por otro lado, en cada nivel se escanean todos los elementos del input, por lo que su complejidad es  $\Theta(n\log_{S}n) = \Theta(n\log_{m}n)$.
+\subsection{Distribution Sweep}
+Distribution Sweep es un algoritmo de computación geométrica para memoria externa que resuelve el problema de encontrar todas las intersecciones entre segmentos de línea ortogonales. Para esto divide la dimensión horizontal en ``slabs'' (paradigma distributivo) y recorre/barre los datos de arriba hacia abajo con una ``Sweep Line''(paradigma de barrido).\\
+El algoritmo queda descrito por el siguiente procedimiento:
+\begin{itemize}
+    \item Generar lista $X$ de segmentos ordenados por su coordenada $x$.
+    \item Generar lista $Y$ de segmentos ordenados por su coordenada $y$. Sea cuidadoso en este paso, preocúpese que para segmentos de igual coordenada aparezcan primero los segmentos verticales y luego los horizontales.\footnote{Esto último es para garantizar un correcto funcionamiento del algoritmo.}
+    \item Usar la lista $X$ para dividir el input en $k = \Theta(m)$ ``slabs'' verticales y por cada $slab_{i}$ inicializar una lista $A_{i}$ de segmentos verticales activos.
+    \item Usar la lista $Y$ para recorrer los segmentos de arriba hacia abajo, emulando un barrido horizontal de los datos, con la denominada ``Sweep Line'', de modo que:
+    \begin{itemize}
+        \item Si escaneo el inicio de un segmento vertical, encuentro el $slab_{i}$ en el cual se encuentra y agrego el segmento a la lista $A_{i}$ correspondiente.\footnote{Cada segmento se debe manejar como una pila que mantiene en memoria interna $\le B$ segmentos y pone en memoria externa cuando se llena.}
+        \item Si escaneo el fin de un segmento vertical, lo elimino de la lista $A_{i}$ correspondiente en la cual se encuentra.\footnote{Las eliminaciones de los segmentos de las listas se debe hacer de forma ``lazy'', es decir, cuando se procese la lista en busca de intersecciones.}
+        \item Si escaneo un segmento horizontal, encuentro los ``slabs'' en los que se encuentran los extremos del segmento, $slab_{i}$ y $slab_{j}$ (con $i \le j$) y reporto las intersecciones con todos los segmentos que se encuentran en las listas $A_{i+1},\ldots,A_{j-1}$ (si existe una intersección en los ``slabs'' de los extremos, estos serán reportados en los siguientes niveles de la recursión).
+        \item Repito recursivamente el algoritmo en cada uno de los ``slabs'' hasta que el tamaño de estos quepa completamente en memoria interna.
+    \end{itemize}
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=0.63\textwidth]{imagenes/DistributionSweep.png}
+\end{center}
+En la figura anterior los segmentos verticales en las listas activas están oscurecidos($s_{1},\ldots, s_{9}$), los segmentos $s_{5}$ y $s_{9}$ no están realmente activos, pero aún no se han eliminado de las listas $A_{5}$ y $A_{9}$. La ``Sweep Line'' recién avanzó a una línea horizontal que cubre completamente los ``slabs'' 2 y 3, por lo que son escaneados todos los segmentos de las listas $A_{2}$ y $A_{3}$, es decir , $s_{2}, s_{3}, s_{4}, s_{5}, s_{6}, s_{7}$ y son reportados todas las intersecciones generadas por estos segmentos, excepto $s_{5}$ que es eliminado de su lista activa. Las posibles intersecciones que se generan con los ``slabs'' de los extremos son tratados por los siguientes niveles de la recursión en donde eventualmente se descubre la intersección son $s_{8}$.\\
+
+Si el input son $N$ segmentos de líneas el algoritmo anterior es de complejidad $\mathcal{O}(n\log_{m}n)$ al igual que la de ordenar.
+\section{Implementación}
+
+Implemente alguna de las versiones de ordenación en memoria externa óptimas en complejidad (como se mostró puede ser MergeSort o DistributionSort) adaptada para ordenar segmentos de líneas según sus coordenadas $x$ o $y$  y utilice esto para implementar el algoritmo ``Distribution Sweep''.\\
+Asuma que el input viene en la forma de un archivo desordenado de segmentos de línea separados por comas, cada segmento de línea se representa como una tupla $(x_{1}, y_{1}, x_{2}, y_{2})$, donde $(x_{1}, y_{1})$ y $(x_{2}, y_{2})$ son los puntos de los extremos del segmento. Las coordenadas de las intersecciones de los segmentos deben mostrarse una única vez en la salida estándar en forma de pares ordenados $(x,y)$.
+
+\section{Experimentos}
+Escoja los parámetros $M$ y $B$ de acuerdo a las características de su máquina y en pro de la obtención de datos significativos. Documente los parámetros anteriores características de su máquina, el sistema operativo, lenguaje, y compilador utilizados, RAM y características del disco duro.\\
+En los experimentos se pide comparar los resultados del algoritmo dependiendo de los siguientes parámetros:
+\begin{itemize}
+    \item Tamaño del input, diferentes cantidades de segmentos $N \in \{2^9, 2^{10},\ldots, 2^{21}\}$.
+    \item Distribución en la coordenada $x$ de los segmentos verticales, considere las siguientes: uniforme, normal.\footnote{Indique el rango, la media y la desviación de las distribuciones consideradas.}Las demás coordenadas tómelas uniformemente en el espacio.
+    \item Balance entre la cantidad de segmentos verticales y horizontales, considere tener $\alpha N$ segmentos horizontales y $(1-\alpha)N$ verticales con $\alpha \in \{0.25, 0.5, 0.75\}$.
+\end{itemize}
+Para lo anterior considere las siguientes mediciones:
+\begin{itemize}
+    \item Tiempo de ejecución y número de operaciones I/O. Separe las mediciones de ordenación de las del resto del algoritmo.
+    \item Número de intersecciones encontradas.
+\end{itemize}
+\section{Entrega de la Tarea}
+\begin{itemize}
+    \item La tarea puede realizarse en grupos de a lo más 2 personas.
+    \item No se permiten atrasos.
+    \item Para la implementación puede utilizar C, C++ o Java. Para el informe se recomienda utilizar \LaTeX .
+    \item Siga buenas prácticas (good coding practices) en sus implementaciones.
+    \item Escriba un informe claro y conciso. Las ponderaciones del informe y la implementación en su nota final son las mismas. No olvide adjuntar un README con instrucciones de compilación y ejecución de su código. Tampoco olvide documentar las características de la máquina donde fueron realizados los experimentos.
+    \item Tenga en cuenta las sugerencias realizadas en la primera clase auxiliar y en los archivos subidos a U-Cursos sobre la forma de realizar y presentar experimentos.
+    \item La entrega será a través de U-Cursos y deberá incluir el informe junto con el código fuente de la implementación (y todas las indicaciones necesarias para su ejecución).
+\end{itemize}
+\section{Links}
+\begin{itemize}
+    \item Paper donde se explica algoritmo de ``Distribution Sweep'':\\ \href{http://www.ics.uci.edu/~goodrich/pubs/ecg.pdf}{http://www.ics.uci.edu/~goodrich/pubs/ecg.pdf}
+\end{itemize}
+\end{document}
+

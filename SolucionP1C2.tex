@@ -1,0 +1,107 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage{algorithmic}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ %%%MTF, FIBOHEAPS, HASHING LINEAL Y EXTENDIBLE Y PRIORITY QUEUES
+% COmpletar titulo
+\title{Solución Control 2 P1}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\vspace{-1ex}
+
+
+\begin{problems}
+\problem
+\begin{enumerate}[(a)]
+    \item Sea $L$ de $n$ elementos y $A$ un algoritmo que no utiliza transposiciones pagadas. Generamos la secuencia de peticiones $\sigma = x_{1}, \ldots, x_{p}$ de modo que al hacer la petición $x_{i}$ este se encuentra al final de la lista (notar que las peticiones las hacemos según el algoritmo), y por lo tanto el costo para $A$ de es de $np$.\\
+    
+    Sean $f_{1},\ldots,f_{n}$ las frecuencias de peticiones de cada uno de los elementos de la listas enumeradas en forma no creciente.\\
+    Proponemos el siguiente algoritmo que si usa transposiciones pagadas : 
+    \begin{itemize}
+        \item Ordenar (vía intercambios de elementos consecutivos) $L$ de según orden no creciente de frecuencia de accesos.
+        \item Responder a las peticiones de manera estática, es decir, no hacer ningún otro intercambio.
+    \end{itemize}
+    El número de intercambios consecutivos en la fase inicial esta acotado por el máximo número de inversiones (puedo aplicar InsertionSort) que es $\binom{n}{2}$ y por otro lado los accesos tienen costo $\sum if_{i}$, por lo tanto el costo del algoritmo está acotado por:
+    \begin{align*}
+        \le \frac{n(n-1)}{2} + \sum_{i=1}^n if_{i}
+    \end{align*}
+    Lo que maximizaría esta suma sería que las frecuencias estuviesen ordenadas no decrecientemente, pero como se cumple la restricción $f_{1}\ge\ldots\ge f_{n}$, entonces:
+    \begin{align*}
+        \le \frac{n(n-1)}{2} + \frac{p}{n}\sum_{i=1}^n i\\
+        =  \frac{n(n-1)}{2} + \frac{p(n+1)}{2}
+    \end{align*}
+    Entonces el costo de este algoritmo será mejor que el costo de $A$ cuando:
+    \begin{align*}
+        &\frac{n(n-1)}{2} + \frac{p(n+1)}{2} < np\\
+        \Leftarrow & 1 < n < p
+    \end{align*}
+    El caso más simple en donde se cumple esto es en  $1< n=2 < p=3$. Para este caso supongamos que el estado inicial de la lista es $L_0 = [1,2]$. Y las secuencias de peticiones posibles (dependiendo del algoritmo) son $(2, 2, 2)$, $(2,2,1)$, $(2,1,1)$, $(2,1,2)$. Para cada una de estas secuencias (y por lo tanto algoritmos) siempre se tiene que el costo es de $np = 2\cdot 3 = 6$. Sin embargo, podemos aplicar el algoritmo anterior para obtener un costo mejor. Hagámoslo por ejemplo para la secuencia $(2, 1, 2)$, en esta primero el algoritmo reordena los números a costo $1$, después se pide el $2$ a costo $1$, el $1$ a costo $2$ y nuevamente el $2$ a costo $1$ teniendo un costo total de $5 < 6$. Se puede verificar que todas las otras secuencias generan algoritmos que hacen intercambios pagados de coste menor.
+    \item Primero veamos que el potencial escogido es válido. Esto es cierto, pues $\phi_{0} = 0$, ya que ambos algoritmos parten con la misma lista y no hay inversiones entre ellas. Además $\phi_{i} \ge \phi_{0} = 0$, pues el número de inversiones no puede ser un negativo.\\
+    Sea $i\ge 1$. Sea $x$ el elemento consultado en la iteración $i$, el cual se encuentra en la posición $k$.\\
+    Definamos $b$ como el número de elementos que están antes que $x$ tanto en $L_{i-1}$ como en $L_{i-1}'$ y $e$ el número de elementos que están antes que $x$ en $L_{i-1}$ pero no en $L_{i-1}'$, y por lo tanto el costo de MTF de ese acceso es: $c_{i} = k = b + e + 1$.\\
+    Sabemos que el costo amortizado será entonces: $ca_{i} = c_{i} + \Delta \phi_{i}$. Calculemos entonces $\Delta \phi_{i}$, para hacer esto calcularemos por separado este potencial para cada una de las operaciones que hace tanto MTF como OPT de la siguiente manera:
+    \begin{equation*}
+        \Delta \phi_{i} = \Delta_1 \phi_{i} + \Delta_2 \phi_{i} + \Delta_3 \phi_{i}
+    \end{equation*}
+    \begin{itemize}
+        \item $\Delta_1 \phi_{i}$, es el cambio de potencial por el movimiento al frente que hace MTF. Al hacer esto se crean $b$ (pues eran elementos que estaban antes que $x$ en ambas listas) inversiones y se destruyen $e$ (pues eran elementos que estaban después que $x$ en $L_{i-1}'$). Es decir, $\Delta_1 \phi_{i} = b - e$.
+        \item $\Delta_2 \phi_{i}$, dada por los $p$ intercambios pagados que hace OPT, que a lo más crean $p$ inversiones. Es decir, $\Delta_2 \phi_{i} \le p$.
+        \item $\Delta_3 \phi_{i}$, dado por los $f$ intercambios gratis que hace OPT, pero estos intercambios son de $x$ con elementos vecinos a su izquierda, y como en $L_{i}$ $x$ está al comienzo, cada uno de estos intercambios destruye exactamente una inversión. Es decir, $\Delta_3 \phi_{i} \le -f$.
+    \end{itemize}
+    Con lo anterior tenemos entonces que:
+    \begin{align*}
+        ca_{i} = c_{i} + \Delta \phi_{i} &\le (b + e + 1) + (b - e) + p + -f\\
+        &=  2b + 1 + p - f\\
+        &= 2(j - 1) + 1 + p -f\\
+        &= 2j -1 + p - f\\
+        &\le 2j -1 + p
+    \end{align*}
+\item De la pregunta anterior tenemos que  $ca_{i} \le 2j - 1 + p$, donde $j$ y $p$ representan la posición del elemento accesado y el número de inversiones pagadas por OPT en la consulta $i$. Con esto tenemos que :
+\begin{align*}
+    MTF(\sigma) &= \sum_{i=1}^n c_{i}\\
+    &\le \sum_{i=1}^n ca_{i}\\
+    &\le \sum_{i=1}^n 2j - 1 + p\\
+    &= 2\cdot OPT_{accesos}(\sigma) + OPT_{pagados}(\sigma) - n\\
+    &\le 2\cdot OPT(\sigma)
+\end{align*}
+\end{enumerate}
+
+\end{problems}
+
+\end{document}
+

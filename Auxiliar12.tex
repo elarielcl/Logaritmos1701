@@ -1,0 +1,158 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+\usepackage{bbm}
+
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\SetKwInput{KwIn}{Input}
+\renewcommand{\algorithmcfname}{Algoritmo}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ 
+\title{Auxiliar 12 - ``Algoritmos Probabilísticos"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+23 de Junio del 2017
+\end{center}
+\vspace{-1ex}
+
+%%ORDENAR PUNTOS EN EL PLANO CON DISTRIBUCION UNIFORME
+%%ORDENAR VALORES EN [0, n^k - 1]
+%%ORDENAR SEGUN DISTANCIA AL CENTRO, PUNTOS DEL CIRCULO UNITARIO
+%%vEM (?)
+%%RANK EN TIEMPO CTE Y ESPACIO o(n)
+%%EXPRESIONES REGULARES EN AUTOMATAS! (COMODIN)
+%%KNUTH MORRIS PRATT
+%%OPERACIONES EN SUFFIX TREES!
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Polinomios}}}\\
+Dados 3 polinomios en una variable $p, q$ de grado $n$ y $r$ de grado $2n$. Muestre un algoritmo probabilístico que tome tiempo $\mathcal{O}(n)$ en determinar si $pq = r$.
+\problem {\large\underline{\textbf{Matrices}}}\\
+Dadas 3 matrices cuadradas $A, B$ y $C$ de tamaño $n\times n$. Muestre un algoritmo probabilístico que tome tiempo $\mathcal{O}(n^2)$ en determinar si $AB = C$.
+
+\problem {\large\underline{\textbf{Las Vegas vs Monte Carlo}}}
+\begin{enumerate}[a)]
+    \item Muestre que si se tiene un algoritmo de tipo Las Vegas de tiempo esperado $T$ y una constante $c>0$. Se puede construir, para el problema, un algoritmo Monte Carlo de tiempo $cT$ y probabilidad de error a lo más $1/c$.
+    \item ¿Siempre se puede transformar un algoritmo Monte Carlo en un algoritmo de tipo Las Vegas? ¿Que restricción adicional sobre el problema podemos colocar para que sea cierto?
+\end{enumerate}
+
+\problem {\large\underline{\textbf{Conjunto Independiente}}}\\
+Un conjunto independiente de un grafo $G = (V, E)$, con $|V| = n$ y $|E| = m$, es un subconjunto $V'$ de $V$ sin aristas de $E$ entre elementos de $V'$. El problema de encontrar un conjunto independiente de cierto tamaño es NP-completo. Considere que $V'$ , de tamaño $r$, se escoge al azar de $V$ . Sea $X$ la cantidad de aristas de $E$
+que conectan nodos de $V'$ ($X$ es una variable aleatoria).
+\begin{enumerate}
+\item Considere una arista de $E$ en particular. Calcule la probabilidad de que esta arista
+conecte dos nodos de $V'$. Acote la esperanza de $X$, $E(X)$.
+\item Diseñe un algoritmo Monte Carlo que encuentre un conjunto independiente de tamaño $\epsilon n/\sqrt{m}$ con probabilidad $1 − \epsilon^2$ , para cualquier $0 < \epsilon < 1$.    
+\end{enumerate}
+\end{problems}
+\newpage
+\begin{problems}
+\problem
+Elegimos uniformemente $x \in \{0, \ldots, 4n+1\}$ y luego respondemos \texttt{true} si $p(x)\cdot q(x) = r(x)$ y \texttt{false} en otro caso. 
+\begin{itemize}
+    \item En el caso de que la igualdad sea correcta, el algoritmo responde \texttt{true} de manera correcta.
+    \item Sin embargo, cuando la igualdad es falsa ($pq\not =r$) el algoritmo podría responder erróneamente \texttt{true} en caso que $p(x)\cdot q(x) = r(x)$ o equivalentemente cuando el polinomio $g = pq - r$ se hace cero, i.e. cuando $x$ es cero de $g$.\\
+    Veamos que $g$ es de grado a lo más $2n+1$ por lo que tiene a lo más $2n+1$ raíces, y luego la probabilidad que el algoritmo se equivoque es:
+    \begin{align*}
+        \mathbb{P}(x\ es\ raiz\ de\ g) \le \frac{2n+1}{4n+2} = \frac{1}{2}
+    \end{align*}
+\end{itemize}
+\problem
+Elegimos un vector aleatorio $r$ uniformemente en $\{0, 1\}^n$. Respondemos \texttt{true} si $A(Br) = Cr$ y \texttt{false} en otro caso. Al igual que en la P1 se cumple que cuando es cierto que $AB = C$ el algoritmo responde correctamente \texttt{true}, sin embargo, en caso que $AB \not = C$ puede que el algoritmo de todas formas responda \texttt{true} erróneamente lo que sucede en caso que $A(Br) = Cr$ o equivalentemente $(AB-C) r := Dr = P = 0$.\\
+
+Como $D\not = 0$, existe un $d_{i,j}\not = 0$, la probabilidad de que la coordenada $i$ de $P$ sea 0 es:
+\begin{align*}
+    \mathbb{P}\left(p_{i} = 0\right) &= \mathbb{P}\left(\sum_{k=1}^n d_{i,k}r_k = 0\right)\\
+    &=\mathbb{P}\left(d_{i,j}r_j + y = 0\right)\\
+    &= \mathbb{P}\left(d_{i,j}r_j + y = 0 | y = 0\right)\mathbb{P}(y = 0) + \mathbb{P}\left(d_{i,j}r_j + y = 0 | y \not= 0\right)\mathbb{P}(y \not= 0)\\
+    &=  \mathbb{P}\left(r_j = 0\right)\mathbb{P}(y = 0) + \mathbb{P}\left(r_j = 1 \land  y = -d_{i,j} \right)(1-\mathbb{P}(y = 0))\\
+    &\le \mathbb{P}\left(r_j = 0\right)\mathbb{P}(y = 0) + \mathbb{P}\left(r_j = 1\right)(1-\mathbb{P}(y = 0))\\
+    &= \frac{1}{2}\mathbb{P}(y = 0) + \frac{1}{2}(1-\mathbb{P}(y = 0))\\
+    &= \frac{1}{2}
+\end{align*}
+, luego la probabilidad de error del algoritmo en este caso es:
+\begin{align*}
+    \mathbb{P}(P=0) \le \mathbb{P}(p_{i}=0)\le \frac{1}{2}
+\end{align*}
+\problem 
+Preliminares :
+\begin{itemize}
+    \item \underline{Desigualdad de Markov:} Si $X$ es una variable aleatoria no negativa con valor esperado positivo entonces
+    \begin{align*}
+        \forall c > 0,\ \mathbb{P}(X \ge c \mathbb{E}(X)) \le \frac{1}{c}
+    \end{align*}
+    \item \underline{Algoritmo Montecarlo:} Algoritmo probabilístico que termina en un tiempo determinado, pero tiene una probabilidad de error distinta de $0$.
+    \item \underline{Algoritmo Las Vegas:} Algoritmo probabilístico con probabilidad de error $0$, pero que no asegura el término de su ejecución, solo asegura un valor esperado finito del tiempo que demora.
+\end{itemize}
+\begin{enumerate}[a)]
+\item Si tenemos un algoritmo $A$ ``Las Vegas'' que resuelve el problema en tiempo esperado $T > 0$, creamos el siguiente algoritmo ``Montecarlo'':
+\begin{itemize}
+    \item Correr $A$ por $cT$ tiempo, si ha terminado, respondemos lo mismo que $A$, si no respondemos ``\texttt{null}''.
+\end{itemize}
+Definamos la variable aleatoria $X$ como el tiempo que demora el algoritmo $A$. Por Desigualdad de Markov sabemos que $\mathbb{P}(X\ge cT) \le \frac{1}{c}$, pero $\mathbb{P}(X\ge cT)$ es la probabilidad de que $A$ se demore más de $cT$ y por lo tanto una cota superior a la probabilidad de que nuestro algoritmo ``Montecarlo'' se equivoque.
+\item La condición para hacer la transformación es contar con un procedimiento eficiente que verifique el \texttt{output} dado por el algoritmo ``Montecarlo'' sea correcto, pues si lo tenemos podemos hacer un algoritmo ``Las Vegas'' que corra el ``Montecarlo'' hasta que este último entregue una respuesta correcta.
+\end{enumerate}
+\problem
+\begin{enumerate}[a)]
+\item 
+\begin{align*}
+\mathbb{E}(X) &= \mathbb{E}\left(\sum_{e \in E}\mathbbm{1}(e\ conecta\ nodos\ de\ V')\right)\\
+&= \sum_{e \in E} \mathbb{P}(e\ conecta\ nodos\ de\ V')
+\end{align*}
+Ahora, para calcular esta probabilidad, tomemos una arista $e = (u,v)\in E$ y miremos la probabilidad de que el $V'$ escogido contenga a $u$ y $v$ (que es la misma que $u,v \in V'$. Este calculo lo haremos pensando que hay $\binom{n}{r}$ formas de escoger $V'$ y $\binom{n-2}{r-2}$ de estas contienen tanto a $u$ como a $v$. Es decir :
+\begin{align*}
+    \mathbb{E}(X) &= \sum_{e \in E} \mathbb{P}(e\ conecta\ nodos\ de\ V')\\
+    &= \sum_{e \in E} \frac{\binom{n-2}{r-2}}{\binom{n}{r}}\\
+    &= m \frac{\frac{(n-2)!}{(n-r)!(r-2)!}}{\frac{n!}{(n-r)!r!}}\\
+    &= m \frac{r(r-1)}{n(n-1)}\\
+    &\le m \frac{r^2}{n^2}
+\end{align*}
+\item Si tomamos $r = \frac{\epsilon n }{\sqrt{m}}$, por Markov tenemos que:
+\begin{align*}
+    \mathbb{P}(error) = \mathbb{P}(X\ge 1) &\le \mathbb{E}(X)\\
+    &\le m \left(\frac{\frac{\epsilon n }{\sqrt{m}}}{n}\right)^2\\
+    &= \epsilon^2
+\end{align*}
+,y entonces, $\mathbb{P}(no\ error) \ge 1 - \epsilon^2$
+\end{enumerate}
+\end{problems}
+
+
+\end{document}
+
+ 

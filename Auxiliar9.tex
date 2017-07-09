@@ -1,0 +1,147 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\SetKwInput{KwIn}{Input}
+\renewcommand{\algorithmcfname}{Algoritmo}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ 
+\title{Auxiliar 9 - ``Algoritmos Aproximados"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+7 de Junio del 2017
+\end{center}
+\vspace{-1ex}
+
+%%ORDENAR PUNTOS EN EL PLANO CON DISTRIBUCION UNIFORME
+%%ORDENAR VALORES EN [0, n^k - 1]
+%%ORDENAR SEGUN DISTANCIA AL CENTRO, PUNTOS DEL CIRCULO UNITARIO
+%%vEM (?)
+%%RANK EN TIEMPO CTE Y ESPACIO o(n)
+%%EXPRESIONES REGULARES EN AUTOMATAS! (COMODIN)
+%%KNUTH MORRIS PRATT
+%%OPERACIONES EN SUFFIX TREES!
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Knapsack}}}\\
+El ``problema de la mochila'' es un problema de optimización que busca llevar la mayor cantidad de valor en una mochila de espacio limitado. Más precisamente, se nos da una lista de $n$ items con sus respectivos valor: $v_{i}$ y espacio que ocupa: $s_{i}$ y queremos llevarnos la mayor cantidad de ``valor'' en una mochila que tiene capacidad $S$.
+\begin{enumerate}[a)]
+    \item De un algoritmo de programación dinámica y muestre su complejidad.
+    \item Considere el algoritmo que ordena de forma decreciente las densidades de los items ($v_{i}/s_{i}$) y luego mete a la mochila en este orden hasta que no le quede espacio.\\ Muestre que no existe una constante $k$ para la cual lo anterior sea una $k$-aproximación.
+    \item Mejore el algoritmo anterior a una $2-$aproximación.
+\end{enumerate}
+
+\problem {\large\underline{\textbf{``Smarter'' Vertex Cover}}}\\
+En clases se vio una 2-aproximación para el problema de cubrimiento por vértices, el siguiente algoritmo busca aprovechar el hecho que vértices de grado alto cubren muchas aristas.
+\begin{algorithm}[H]
+
+
+\SetAlgoLined
+\KwIn{$G = (V, E)$}
+ $E'\gets E$\;
+ $C\gets \emptyset$\;
+ \While{$E' \not = \emptyset$}{
+  Tomar $u \in (V\setminus C)$ de mayor grado en $G'=(V\setminus C, E')$\;
+  $C\gets C \cup \{u\}$\;
+  $E' \gets E' \setminus \{e \in E' \colon \text{$u$ es incidente a $e$}\}$\;
+ }
+ \KwRet{C}
+ 
+\end{algorithm}
+Muestre que no existe una constante $\rho$ para la cual este sea una $\rho$ aproximación del problema. 
+
+
+\problem {\large\underline{\textbf{Set Covering (no online)}}}\\
+El problema de cobertura de conjuntos consiste en dado un conjunto $U$ de tamaño $n$ y una serie de subconjuntos de  $U$, $S_{1}, S_{2}, \ldots, S_{m}$, cuya unión es $U$. Encontrar conjunto de mínimo tamaño $C \subseteq [m]$, tal que $\bigcup\limits_{i \in C} S_{i}$. Muestre que el algoritmo que va tomando el conjunto con más elementos y sacando sus elementos del problema es una $(\ln n)$-aproximación.
+\end{problems}
+
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\item 
+\begin{enumerate}[a)]
+\item Definimos $K[i,x]$ como la solución del problema de la mochila con los elementos $i, i+1, \ldots, n$ con una mochila de capacidad $x$.
+Veamos que :
+\begin{align*}
+    K[i,x] = max(\underbrace{K[i+1,x]}_{\text{no cargar item $i$}}, \underbrace{K[i+1, x-s_{i}] + v_{i}}_{\text{cargar item $i$}})
+\end{align*}
+lo que nos indica que el problema tiene subestructura óptima y puede ser resuelto con un algoritmo de programación dinámica. El costo de este algoritmo es el de llenar la tabla de programación dinámica, que es el tamaño de la tabla (pues casilla cuesta calcular un máximo, $\mathcal{O}(1)$) la cual es $\mathcal{O}(nS)$. Notar que esto no contradice el hecho que Knapsack sea NP-Completo pues $\mathcal{O}(nS)$ es exponencial en el tamaño de la entrada ($\mathcal{O}(n\log S)$).
+\item Como esto es un problema de maximización ser una $k$-aproximación significa que $k$ veces el valor obtenido por el algoritmo es siempre mayor o igual al valor óptimo ($k\cdot ALG \ge OPT$). Por lo tanto, para mostrar que el algoritmo \textbf{no es} una $k$ aproximación , debemos mostrar que para cualquier $k$ existe un input en el cual $k\cdot ALG < OPT$.\\
+Sea entonces un $k$ y el siguiente input $S = 2k$, $(v_{1},s_{1}) = (2, 1), (v_{2},s_{2}) = (3k, 2k)$. Como el primer elemento tiene mayor densidad que el segundo el algoritmo lo elige y después no puede poner al segundo, por lo que $ALG = 2$, mientras que el óptimo corresponde a llevar el segundo elemento con $OPT = 3k$, en donde se cumple que $k\cdot ALG = 2k < 3k = OPT$.
+\item Si al aplicar el algoritmo anterior nos quedamos en la mochila con los elementos $1, \ldots, i$. Entonces nos quedaremos con esos elementos siempre y cuando $\sum_{k=1}^i v_{k} > v_{i+1}$, en otro caso nos quedamos con el elemento $i+1$.\\
+Mostremos ahora que este algoritmo es una $2$-aproximación, es decir, $2ALG \ge OPT$. Para esto veamos primero que el $OPT$ no puede ser mayor que la suma de los valores de los primeros (en el orden de decreciente de densidad dado) $i+1$ elementos, puesto que la solución del problema relajado (donde se nos permite llevar fracciones de elementos) corresponde a llevar a los elementos más densos y a una fracción del $i+1$ que quepa en la mochila. Esto es:
+\begin{align*}
+    OPT &\le \sum_{k=1}^{i+1} v_{k} \\
+    & = \sum_{k=1}^{i} v_{k} + v_{i+1}\\
+    &\le max\left(\sum_{k=1}^{i} v_{k}, v_{i+1}\right) + max\left(\sum_{k=1}^{i} v_{k}, v_{i+1}\right)\\
+    &= 2ALG
+\end{align*}
+\end{enumerate}
+\newpage
+\item Tomemos un $k$ cualquiera y construyamos el siguiente grafo bipartito. La partición izquierda corresponderá a un conjunto de $k!$ vértices $S$. La partición de la derecha serán $k$ conjuntos disjuntos de vértices,  $S_{1},\ldots, S_{k}$; donde $S_{i}$ será $\frac{k!}{i}$ vértices de grado $i$ que con sus aristas cubren todo $S$.\\
+\begin{center}
+    \includegraphics[scale=0.5]{imagenes/grafo.jpg}
+\end{center}
+En este grafo, el óptimo corresponde a cubrir las aristas con los $k!$ vértices de $S$, por lo que $OPT = k!$. Sin embargo, el algoritmo tomaría\footnote{Como no se especifica que hacer frente a empate nosotros como adversario podemos tomar la decisión por el algoritmo.} primero los vértices de $S_{k}$ (pues son de grado $k$), luego los de $S_{k-1}$, los de $S_{k-2}$, \ldots , los de $S_{1}$ que en total son $ALG = \frac{k!}{k} + \frac{k!}{k-1} + \ldots + \frac{k!}{1} = k!\left(\sum_{i=1}^k\frac{1}{i}\right) = k!H_{k}$.\footnote{Número armónico.}\\
+
+Finalmente, si suponemos que el algoritmo es una $\rho$-aproximación, $ALG \le \rho OPT$, pero con el grafo anterior tenemos que: $k!H_{k} \le \rho k! \Rightarrow H_{k} \le \rho$. Sin embargo, $H_{k}$ es creciente y no acotado\footnote{La serie diverge.}, por lo que la última desigualdad es una contradicción.
+\newpage
+\item Sea $t$ la solución óptima, es decir, $OPT = t$ y nombremos $U_{k}$ al conjunto de elementos luego de la iteración $k$ del algoritmo. Notemos que:
+\begin{itemize}
+    \item $U_{0} = U$.
+    \item En el paso $k$, $U_{k}$ puede ser cubierto con $t$ conjuntos (pues hay $t$ que cubren todo $U$).
+    \item Por palomar, al menos uno de ellos cubre al menos $\frac{|X_{k}|}{t}$ elementos.
+    \item Como el algoritmo escoge el conjunto que tiene más elementos, en este paso escogerá uno que tiene al menos $\frac{|X_{k}|}{t}$.
+    \item Luego, se cumple que: $|X_{k+1}| \le \left(1-\frac{1}{t}\right)|X_{k}|$.
+    \item Y en general: $|X_{i}| \le \left(1-\frac{1}{t}\right)^i n$.
+    \item Si el número de iteraciones es $t\ln n$, tenemos :
+    \begin{align*}
+        |X_{t\ln n}| &\le \left(1-\frac{1}{t}\right)^{t \ln n} n\\
+        & = \left(\left(1-\frac{1}{t}\right)^t\right)^{\ln n} n\\
+        & < \left(\frac{1}{e}\right)^{\ln n} n\\
+        & = 1
+    \end{align*}
+     esto significa que $|X_{t\ln n}| = 0$, es decir, el algoritmo luego de $t\ln n$ iteraciones ya terminó, por lo que escoge $\le t\ln n$ conjuntos. Demostrando de esta manera que es una $(\ln n)$-aproximación ($ALG \le t\ln n = OPT \ln n$).
+\end{itemize}
+\end{problems}
+\end{document}
+
+ 

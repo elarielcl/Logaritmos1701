@@ -1,0 +1,126 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage{algorithmic}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ 
+\title{Auxiliar 8 - ``Algoritmos Online"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+2 de Junio del 2017
+\end{center}
+\vspace{-1ex}
+
+%%ORDENAR PUNTOS EN EL PLANO CON DISTRIBUCION UNIFORME
+%%ORDENAR VALORES EN [0, n^k - 1]
+%%ORDENAR SEGUN DISTANCIA AL CENTRO, PUNTOS DEL CIRCULO UNITARIO
+%%vEM (?)
+%%RANK EN TIEMPO CTE Y ESPACIO o(n)
+%%EXPRESIONES REGULARES EN AUTOMATAS! (COMODIN)
+%%KNUTH MORRIS PRATT
+%%OPERACIONES EN SUFFIX TREES!
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Tareas y Procesadores}}}\\
+Tenemos $m$ procesadores idénticos. Como entrada recibimos una lista $t_{1}, t_{2}, \ldots, t_{n}$ de tareas con tiempos de procesamiento $p_{1}, p_{2}, \ldots, p_{n} > 0$, respectivamente. Las tareas son recibidas secuencialmente, y sólo cuando una tarea llega conocemos su tiempo de procesamiento. Cada tarea debe ser asignada a una máquina inmediatamente, y la decisión no puede ser cambiada. La \textit{carga} de un procesador es la suma de los tiempos de procesamiento de todas las tareas que le son asignadas. El costo de un algoritmo que resuelve el problema de asignación es la máxima carga entre sus procesadores.\\
+Considere el siguiente algoritmo para el problema anterior. Cada tarea es asignada al procesador con menor carga (en caso de empate, se elige cualquiera).
+\begin{enumerate}[a)]
+    \item Demuestre que este algoritmo es $\left(2-\frac{1}{m}\right)-$competitivo.
+    \item Demuestre que esta cota es óptima para el algoritmo.
+\end{enumerate}
+\problem {\large\underline{\textbf{Online Set Covering}}}\\
+En el problema online de set covering, se nos entrega $(U, S)$, donde $U$ contiene $n$ elementos y $S$ contiene $m$ subconjuntos de $U$. Luego se entrega de forma online una secuencia de elementos $e_{1}, e_{2}, \ldots, e_{t}$. El algoritmo que resuelve el problema debe construir un subconjunto $R$ de $S$. Cuando llega un nuevo elemento, si no está cubierto por los subconjuntos de $R$, debe escogerse un conjunto de $S$ que lo contenga y agregarlo a $R$ (se permite agregar más conjuntos, si se desea).
+\begin{enumerate}[a)]
+    \item Demuestre que no se puede obtener (usando un algoritmo determinístico) un radio competitivo mejor que $\log_{2} n$.
+    \item Demuestre que no se puede obtener un radio competitivo mejor que $\Omega\left(\frac{\log m}{\log n}\right)$ con un algoritmo determinístico.
+\end{enumerate}
+\end{problems}
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\item 
+\begin{enumerate}[a)]
+    \item Enumeremos las tareas en orden creciente de carga (luego de correr ALG), si lo hacemos, el costo de ALG queda expresado como la carga del último de estos procesadores, el $m$.\\
+    Consideremos ahora la asignación de la última tarea del procesador $m$. Por como funciona el algoritmo, cuando se le fue asignada esta tarea, el procesador $m$ tenía la menor carga entre los procesadores. Por lo tanto, el período de ocio de cada uno de los $m-1$ procesadores anteriores no puede ser mayor que la duración de esta última tarea (sino este procesador no hubiese sido escogido como el de carga menor). De este modo, estos períodos de ocio no pueden exceder la duración de la tarea más larga, $max\ p_{i}$. Con esto se tiene que:
+    \begin{align*}
+        m\cdot ALG &\le \sum_{i=1}^n p_{i} + (m-1)max\ p_{i}\\
+        &\le \frac{1}{m} \sum_{i=1}^n p_{i} + \left(1-\frac{1}{m}\right)max\ p_{i}
+    \end{align*}
+    Finalmente, el óptimo no puede ser menor a la carga promedio (pues este es el óptimo del problema relajado), ni a la máxima duración entre las tareas (pues algún procesador debe procesarle).
+    \begin{align*}
+        & \le OPT + \left(1-\frac{1}{m}\right)OPT\\
+        & = \left(2-\frac{1}{m}\right)OPT        
+    \end{align*}
+    \item Que la cota sea óptima quiere decir que el ALG no consigue un radio competitivo menor a $\left(2-\frac{1}{m}\right)$. Esto lo podemos hacer mostrando que hay un input para el cual se ALG alcanza exactamente $\left(2-\frac{1}{m}\right)OPT$.\\
+    
+    Consideremos $m(m-1)$ tareas de tiempo $1$ y luego una tarea de tiempo $m$. En este caso ALG distribuirá equitativamente las primeras tareas dando carga $(m-1)$ a cada procesador y luego la última tarea se la dará a alguno de los procesadores quien quedará con carga $2m-1$ obteniendo este costo. Sin embargo, el OPT distribuye de manera equitativa estas tareas dándole carga $m$ a cada uno de los procesadores.\\
+    
+    De esta forma $ALG = 2m-1 = \left(2-\frac{1}{m}\right)m = \left(2-\frac{1}{m}\right)OPT$.
+\end{enumerate}
+\newpage
+\item El objetivo de este problema es demostrar que no se pueden obtener radios competitivos mejores a cierta cota, para mostrar esto veremos que dado un algoritmo, existe un input para el cual el algoritmo alcanza exactamente esa cota (veces el OPT). Por esta razón supondremos que nos damos ALG un algoritmo cualquiera que resuelve Online Set Covering.
+\begin{enumerate}[a)]
+    \item Consideremos como input $U=\{0,1\}^d, n = 2^d, S=\{S_{i}\}^d$, con $S_{i}=$\{cadenas que tienen un $1$ en la posición $i$\}. Y la secuencia de peticiones la siguiente:
+    \begin{itemize}
+        \item $e_{1}: 1\ldots 1$, a lo que ALG lo cubre con $S_{i_{1}}$\footnote{Puede que el algoritmo decida cubrir con más de un elemento, pero es simple notar que esto solo afecta el número de peticiones, pero no el costo (que corresponde al número de conjuntos en este caso).}
+        \item $e_{2}: 1\ldots 1 \underbrace{0}_{i_{1}} 1 \ldots 1$, que ALG lo cubre con $S_{i_{2}}$.
+        \item $e_{3}: 1\ldots 1 \underbrace{0}_{min(i_{1},i_{2})} 1 \ldots 1 \underbrace{0}_{max(i_{1},i_{2})} 1 \ldots 1 $, que ALG lo cubre con $S_{i_{3}}$.
+        \item \ldots
+        \item $e_{d}: 0\ldots 0 \underbrace{1}_{i_{d}} 0 \ldots 0$, que el algoritmo cubre con $S_{i_{d}}$.
+    \end{itemize}
+    Notar que el costo de ALG en este caso es $d$, mientras que el OPT consiste en cubrir todos los $e_{i}$ con $S_{i_{d}}$. Finalmente, como $d = \log n$, se tiene que $ALG = \log n  =    \log n\cdot 1 = \log n \cdot OPT$
+    \item Escojamos ahora $U = [n] = \{1, \ldots, n\}$ y $S =\{Q\subseteq U \colon |Q| = \sqrt{n}\}$ (subconjuntos de U de tamaño $\sqrt{n}$), por lo tanto $|S| = \binom{n}{\sqrt{n}} = m$.\\
+    Y la secuencia de peticiones siguiente:
+    \begin{itemize}
+        \item $e_{1}$ un elemento cualquiera en $U$, a lo que ALG cubre con $Q_{1}$.
+        \item $e_{2} \not \in A_{1}$, a lo que ALG cubre con $Q_{2}$.
+        \item $e_{3} \not \in A_{1} \cup A_{2}$, a lo que ALG cubre con $Q_{3}$.
+        \item \ldots
+        \item $U = A_{1} \cup \ldots \cup A_{d}$. Por lo que no se puede continuar con el proceso.
+    \end{itemize}
+    Notemos que $d\ge \sqrt{n}$, pues en el mejor caso ALG escoge los conjuntos disjuntos y como estos son de tamaño $\sqrt{n}$, necesita exactamente $\sqrt{n}$ de estos para cubrir $U$. Pero estos $\sqrt{n}$ elementos pueden haber sido cubiertos con solo un conjunto de $S$, por lo que ALG es peor por un factor de $\sqrt{n}$. Finalmente, se puede mostrar matemáticamente que $\sqrt{n}$ es $\Omega\left(\frac{\log m}{\log n}\right)$.
+\end{enumerate}
+\end{problems}
+
+
+\end{document}
+
+ 

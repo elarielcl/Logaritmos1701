@@ -1,0 +1,110 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+\usepackage{algorithmic}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+ %%%MTF, FIBOHEAPS, HASHING LINEAL Y EXTENDIBLE Y PRIORITY QUEUES
+% COmpletar titulo
+\title{Auxiliar/Repaso/Consulta 6 - ``Amortizado y Flashback"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+5 de Mayo del 2017
+\end{center}
+\vspace{-1ex}
+
+
+\begin{problems}
+%Bienvenida
+\problem {\large\underline{\textbf{Move-to-Front (MF)}}}\\
+En el siguiente problema ``online'' tenemos una lista con $n$ elementos, en la cual accesar al $i$-ésimo elemento tiene costo $i$ y al accesar a un elemento se puede además intercambiarlo con elementos adyacentes a costo 1 cada intercambio.\\
+El algoritmo \textbf{Move-to-Front} propone para enfrentar este problema que al accesar a un elemento este se intercambia con todos los elementos anteriores a el en la lista, de modo que si se accesa al $k$-ésimo elemento, a \textbf{Move-to-Front} le cuesta $2k-1$.\\
+Muestre que el costo de \textbf{Move-to-Front} es siempre menor o igual a 4 veces costo de cualquier otro algoritmo que enfrente el problema.
+
+\problem {\large\underline{\textbf{Colas de Prioridad en Memoria Secundaria}}}\\
+Muestre los algoritmos de inserción y borrado para memoria secundaria vistos en cátedras. Realice un análisis amortizado de la operación de inserción y de la operación de eliminación por separado. Concluya que el análisis realizado no rompe la cota de ordenación en memoria secundaria.
+
+\problem {\large\underline{\textbf{Consultas Tarea 1}}}
+\end{problems}
+
+
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\item Sea OPT el algoritmo que dada una secuencia de accesos hace los intercambios que minimizan el costo total de accesos e intercambios, este algoritmo es irrealizable en la práctica, pues este es un problema ``online'' y los Algoritmos que lo resuelven NO conocen el input de antemano\footnote{Se puede mostrar que cualquier algoritmo ``online'' tiene un peor caso con la técnica de Adversario.}\demon. Sin embargo, si mostramos que MF (costo de Move-to-Front) es menor o igual a $4$ veces OPT (costo del OPT), mostraremos que es menor o igual a $4$ veces el costo de cualquier algoritmo que resuelva el problema. Para mostrar lo anterior veremos que el costo amortizado de MF es menor o igual al costo de OPT.\\
+
+Definimos el potencial $\phi$ como el número de inversiones entre la lista de MF y la de OPT (\magic), en donde una inversión es un par de elementos $(x, y)$ que aparecen en distinto orden relativo en cada uno de las listas\footnote{En una aparece $x$ antes que $y$, y en la otra al revés y viceversa.}.\\
+Al comienzo el potencial es $0$, pues ambas listas parten iguales y este potencial es siempre no negativo, por lo que cumple con los requisitos para ser potencial ($\phi_i \ge \phi_{0}$).\\
+Para analizar el cambio de potencial $\Delta \phi$ lo separaremos en el cambio que se produce luego de que MF mueve el elemento accesado al principio $\Delta_{1} \phi$ y el cambio producido luego de que OPT hace sus intercambios $\Delta_{2} \phi$. ($\Delta \phi = \Delta_{1} \phi + \Delta_{2} \phi$).\\
+
+Sea $x$ el elemento accesado, $k$ su posición en la lista de MF e $i$ su posición en la lista de OPT.  Entonces, al mover el elemento $x$ al principio de la lista de MF se crean a lo más $i-1$ inversiones (los que están adelante de la lista de OPT) y como habían $k-1$ delante de $x$ al menos se destruyen $k-1 - (i-1)$ inversiones. De este modo se concluye que $\Delta_{1} \phi \le 2\times((i-1) - (k-1 - (i-1))) = 4i - 2k - 2$. Por otro lado, si OPT hace $w$ intercambios estos crearán a lo más $w$ inversiones, y por lo tanto $\Delta_{2} \phi \le 2w$.\\
+
+De este modo el costo amortizado de MF estará acotado por: 
+\begin{align*}
+    ca &= cr + \Delta \phi\\
+    &= (2k-1) + \Delta_{1}\phi + \Delta_{2}\phi\\
+    &\le 2k - 1 + 4i - 2k - 2 + 2w\\
+    &= 4i + 2w - 3\\
+    &\le 4(i+w)\\
+    &= 4cr_{OPT}
+\end{align*}
+Finalmente como esto se cumple para todos los accesos tenemos que $MF_{amor} \le 4\cdot OPT$.
+\item La cota inferior para el costo de las operaciones de una cola de prioridad en memoria secundaria es $\Omega\left(\frac{1}{B}\log_{m} n\right)$, pues si fuese asintóticamente menor podríamos insertar los elementos a la cola, después extraerlos y así ordenar en tiempo asintóticamente menor a $n\log_{m}n$, lo que es una contradicción.\\
+
+Se propone tener dos heaps en memoria interna:
+\begin{itemize}
+    \item Un heap de $M/2$ elementos denominado heap de inserción. Los elementos se insertan en este heap, si este se llena se ordenan sus elementos y envían a un archivo de tamaño $M/2$. Si hay $k$ archivos de $M/2$ se les hace un $k-merge$ en un archivo de tamaño $kM/2$. Del mismo modo, si hay $k$ de estos archivos, se convierten en uno de tamaño $k^2M/2$ y así en adelante.\\ Supongamos que al insertar $N$ elementos se llega a tener elementos de tamaño $k^rM/2$. Por lo tanto:
+    \begin{align}
+        N \ge k^rM/2 \Rightarrow r\le \log_{k}(2N/M)
+    \end{align}
+    \item Tenemos un buffer de tamaño $B$ de cada uno de los archivos que tenemos en memoria secundaria y formamos otro heap con los mínimos de estos buffers. Al eliminar extraemos el mínimo entre los dos heaps, si al hacer esto extraemos del segundo heap debemos insertar el siguiente elemento del buffer del archivo de donde venía el elemento extraído, si el buffer está vacío, simplemente traemos otro buffer a memoria principal del archivo correspondiente.\\ De lo anterior se concluye que estos buffers no pueden llenar lo que nos queda de memoria, es decir:
+    \begin{align}
+        rkB \le M/2
+    \end{align}
+    
+    Con esto tenemos lo siguiente:
+    \begin{itemize}
+        \item Una secuencia de $N$ eliminaciones tiene costo $\mathcal{O}(N/B)$ y un costo individual de $\mathcal{O}(1/B)$, pues las únicas operaciones que se hacen en disco son reponer los buffers de los archivos.
+        \item En el caso de una secuencia de inserciones, un elemento insertado se mueve por a lo más $r$ archivos, por lo que cada inserción tiene un costo de $\mathcal{O}(r/B)$. De $(1)$ se concluye que $k \in \mathcal{O}(m)$ y usando $(2)$ concluímos que $r\in\mathcal{O}(\log_{m}n)$ y por lo tanto la inserción tiene costo $\mathcal{O}\left(\frac{1}{B}\log_{m}n\right)$.
+    \end{itemize}
+    Si bien las eliminaciones rompen con la cota dada al principio \fear, esto no es un problema, pues para ordenar primero se deben insertar los elementos (y luego eliminar) de la cola y estas con asintóticamente iguales a la cota anteriormente impuesta.
+\end{itemize}
+\end{problems}
+\end{document}
+

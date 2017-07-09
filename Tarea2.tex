@@ -1,0 +1,203 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+\usepackage[spanish]{babel}
+
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabla}
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Tarea 2 - Búsqueda en texto, arreglo de sufijos y autómata}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{Manuel Cáceres}
+\assistantt{Jaime Salas}
+\assistantt{Claudio Torres}
+
+\begin{document}
+\captionsetup[table]{name=Tabla}
+\captionsetup[table]{name=Figura}
+
+\maketitle
+\vspace{-1ex}
+\section{Introducción}
+El objetivo de esta tarea es implementar, evaluar y comparar en la práctica diferentes enfoques para la búsqueda en texto:
+\begin{itemize}
+    \item Un enfoque estático basado en \textbf{arreglo de sufijos}
+    \item Un enfoque dinámico basado en el \textbf{algoritmo con autómata}
+\end{itemize}
+Se espera que se implementen los algoritmos y se entregue un informe que indique claramente los siguientes puntos:
+\begin{enumerate}[1.]
+    \item Las \textit{hipótesis} escogidas antes de realizar los experimentos.
+    \item El \textit{diseño experimental}, incluyendo los detalles de la implementación de los algoritmos, la generación de las instancias y las medidas de rendimiento utilizadas.
+    \item La \textit{presentación de los resultados} en forma de una descripción textual, tablas y/o gráficos.
+    \item El \textit{análisis e interpretación} de los resultados.
+\end{enumerate}
+\section{Arreglo de sufijos}
+Si $T=t_{1}t_{2}\ldots t_{n}$ es un texto de largo $n$, definimos su $i$-ésimo sufijo como:
+\begin{align*}
+    T_{i} = t_{i}t_{i+1}\ldots t_{n}
+\end{align*}
+Un \textbf{arreglo de sufijos} de un texto $T$, $SA_T$, es un arreglo que cumple:
+\begin{align*}
+    SA_T[i] = k \Leftrightarrow T_k\text{ es el i-ésimo en orden lexicográfico entre los sufijos de } T
+\end{align*}
+\newpage
+\subsection*{Ejemplo}
+\begin{table}[h]\footnotesize
+  \begin{center}
+      \begin{tabular}{| l | c |}
+      \hline
+      Sufijos ordenados & Arreglo de sufijos\\
+      \hline
+      $\$$ & $7$\\
+      $a\$$ & $6$ \\
+      $ana\$$ & $4$ \\
+      $anana\$$ & $2$ \\
+      $banana\$$ & $1$ \\
+      $na\$$ & $5$ \\
+      $nana\$$ & $3$ \\
+      \hline
+  \end{tabular}
+  \caption{Orden lexicográfico y arreglo de sufijos correspondientes para el texto $T=banana\$$}
+  \end{center}
+\end{table}
+\subsection*{Búsqueda de Patrón}
+Para buscar si un patrón $P = p_1\ldots p_m$ es \textit{substring} del texto notamos que si esto último es cierto entonces $P$ será parte del inicio de algún sufijo de $T$ y por lo tanto, podemos hacer \textit{búsqueda binaria} sobre $SA_T$ en búsqueda de la aparición de $P$. Finalmente como la comparación toma $\mathcal{O}(m)$ esta búsqueda toma $\mathcal{O}(m\log n)$.
+\subsection*{Número de ocurrencias de un Patrón}
+Podemos encontrar el número de ocurrencias de un patrón haciendo 2 \textit{búsquedas binarias} en búsqueda de la primera y última ocurrencias de $P$ en $\mathcal{O}(m\log n)$.
+\subsection*{Construcción del arreglo de sufijos}
+La forma más simple de obtener el \textbf{arreglo de sufijos} es ordenar todos los sufijos de $T$ con un algoritmo basado en comparaciones, como en este caso las comparaciones tienen costo $\mathcal{O}(n)$ este algoritmo de construcción tiene costo $\mathcal{O}(n^2\log n)$.\\
+En esta tarea implementaremos el siguiente algoritmo de coste $\mathcal{O}(n)$:
+\subsubsection*{Algoritmo de construcción lineal}
+\begin{enumerate}
+\item Rellenar con un caracter especial (lexicográficamente menor a los caracteres del alfabeto) al final de $T$, repetido tantas veces como sea necesario para que el siguiente procedimiento sea correcto.
+\item Formar las secuencias de triplas:
+\begin{align*}
+T_\alpha &= (t_{1}t_{2}t_{3})\ldots (t_{3i-2}t_{3i-1}t_{3i}) \ldots \\
+T_\beta &= (t_{2}t_{3}t_{4})\ldots (t_{3i-1}t_{3i}t_{3i+1}) \ldots \\
+T_\gamma &= (t_{3}t_{4}t_{5})\ldots (t_{3i}t_{3i+1}t_{3i+2}) \ldots 
+\end{align*}
+\item Asignar a cada tripla un caracter en orden lexicográfico y reemplazar en $T_\alpha$ y $T_\beta$ estos caracteres.
+\item Obtener recursivamente el \textbf{arreglo de sufijos} de $T_\alpha T_\beta$, $SA_{T_\alpha T_\beta}$, que es un problema de tamaño $\sim \frac{2}{3}n$.
+\item Obtener el \textbf{arreglo de sufijos} de $T_{\gamma}$, $SA_{T_\gamma}$. Para esto podemos hacer \texttt{Radix Sort}, considerando que:
+\begin{align*}
+(T_{\gamma})_{i} &= t_{3i}\ldots\\
+&= t_{3i}t_{3i+1}\ldots\\
+&= t_{3i}(T_\alpha)_{i+1}
+\end{align*}
+Es decir, ordenamos palabras de ``dos'' caracteres, uno dado por un caracter real ($t_{3i}$) y el resto dado por que conocemos el orden de los sufijos de $T_\alpha$ (obtenido en el punto anterior).
+\item Mezclamos $SA_{T_\alpha T_\beta}$ y $SA_{T_\gamma}$, con lo que obtenemos y retornamos $SA_T$. Para lograr hacer esta mezcla en tiempo lineal, necesitamos saber como comparar sufijos de $T_\alpha T_\beta$ con sufijos de $T_\gamma$ en tiempo constante, esto lo logramos considerando que:
+\begin{align*}
+(T_{\alpha})_i \text{ vs } (T_{\gamma})_j \Leftrightarrow t_{3i-2}(T_{\beta})_{i} \text{ vs } t_{3j}(T_{\alpha})_{j+1}
+\end{align*}
+que se reduce a una comparación de caracteres y una de sufijos de $T_\beta$ y $T_\alpha$ que sabemos como resolver gracias a $SA_{T_\alpha T_\beta}$. Y también:
+\begin{align*}
+(T_{\beta})_i \text{ vs } (T_{\gamma})_j \Leftrightarrow t_{3i-1}t_{3i}(T_{\alpha})_{i+1} \text{ vs } t_{3j}t_{3j+1}(T_{\beta})_{j+1}
+\end{align*}
+que se reduce a dos comparaciones de caracteres y una de sufijos de $T_\alpha$ y $T_\beta$ que sabemos como resolver gracias a $SA_{T_\alpha T_\beta}$.
+\end{enumerate}
+Finalmente, como el algoritmo mostrado anteriormente toma tiempo lineal y genera una llamada recursiva su costo queda representado por la ecuación de recurrencia:
+\begin{align*}
+T(n) = \mathcal{O}(n) + T\left(\frac{2}{3}n\right) \Rightarrow T(n) \in \mathcal{O}(n)
+\end{align*}
+Y por lo tanto, este algoritmo de construcción tiene costo $\mathcal{O}(n)$.
+\section{Algoritmo con autómata}
+En cátedras se vio un algoritmo para búsqueda en texto basado en el uso de un autómata que solo depende del patrón $P$ buscado.\\
+
+Este autómata queda bien definido por :
+\begin{itemize}
+\item Conjunto de estados $Q=\{0, 1, \ldots, m\}$ siendo $0$ el estado inicial y $m$ el final.
+\item Función de transición 
+\begin{eqnarray*}
+\delta: \Sigma \times Q \to & Q & \\
+(q, a) \mapsto &\delta(q, a) &= \sigma(P[1:q]a) \\
+&  &= \text{largo del sufijo más largo de $P[1:q]a$ que es prefijo de $P$}
+\end{eqnarray*}
+\subsection*{Ejemplo}
+\begin{figure}[h]\footnotesize
+  \begin{center}
+      \includegraphics[scale=0.28]{imagenes/automata.png}
+  \caption{Autómata correspondiente al patrón $P=ababaca$.}
+  \end{center}
+\end{figure}
+Si se ejecuta este autómata sobre el texto $T$ se tienen las siguientes proposiciones:
+\begin{itemize}
+\item Si se alcanza el estado final $m$, entonces $P$ es substring de $T$.
+\item Si se extiende el funcionamiento del autómata para seguir funcionando luego de alcanzar el estado final, entonces el número de veces que aparece $P$ en $T$ es igual al número de veces que se alcanza el estado final en la ejecución del autómata.
+\end{itemize}
+\end{itemize}
+\subsection*{Construcción del autómata}
+Construir el autómata se reduce a construir su función de transición. El algoritmo más simple consiste en hacerlo para cada par $(q, a)\in Q \times \Sigma$ y para cada uno de ellos revisar si $P[1:k]$ es sufijo de $P[1:q]a$ , con $k$ desde $\min(q+1, m)$ hasta $0$ incurriendo en un costo total de $\mathcal{O}(|\Sigma|m^3) = \mathcal{O}(m^3)$.\footnote{Asumiendo que el tamaño del alfabeto es una constante. Este algoritmo se encuentra detallado en la segunda edición del libro ``Introduction to Algorithms'' (CLRS), pág. 922.} \\En esta tarea implementaremos el siguiente algoritmo de coste $\mathcal{O}(m)$:
+\subsubsection*{Algoritmo de construcción optimizado}
+La optimización que consideraremos se basa en la siguiente observación:\\
+
+Al calcular $\delta(q,a) = \sigma(P[1:q]a)$
+    \begin{itemize}
+        \item Si $P[q+1] = a$, entonces $\delta(q,a) = q+1$.
+        \item Si no ($P[q+1] \not= a$), entonces $\delta(q,a) = \sigma(P[1:q]a) = \sigma(P[2:q]a) \le q$, y por lo tanto, puede ser calculado corriendo el autómata parcialmente construído sobre $P[2:q]a$.
+    \end{itemize}
+    Considerando esto podemos construir el autómata en $\mathcal{O}(|\Sigma|m^2) = \mathcal{O}(m^2)$.
+\subsubsection*{Una última observación}
+En el caso $P[q+1] \not= a$ no es necesario correr el autómata sobre $P[2:q]a$. Esto se puede lograr manteniendo una variable $X$ que sea el resultado de correr el autómata sobre $P[2:q]$, es decir, $X = \delta(\ldots\delta(\delta(0, P[2]), P[3])\ldots , P[q])$. Con esto, $\delta(q, a) = \delta(X, a)$, cuando $P[q+1] \not= a$. Obteniendo un tiempo de $\mathcal{O}(|\Sigma|m) = \mathcal{O}(m)$.
+\section{Pruebas y Datos}
+Utilice, al menos, textos de lenguaje natural. Preprocese los textos que usará: elimine saltos de línea, puntuación, lleve todo a minúsculas y otras operaciones que estime convenientes. Luego de este preprocesamiento, asegúrese de que sus textos tengan largos (al menos aproximados) de $N = 2^i$ palabras, con $i \in \{15, 16, \ldots, 25\}$.\\
+Para cada texto, construya el \textbf{arreglo de sufijos}, midiendo su tiempo de construcción.\\
+Escoja $N/10$ palabras de forma aleatoria del texto y encuentre todas las ocurrencias de éstas, registrando los tiempos de búsqueda en función del largo $m$ del patrón. Recuerde que en el caso del \textbf{algoritmo con autómata} cada búsqueda preprocesa el patrón a buscar, tome estos tiempos en función del largo $m$ del patrón. Finalmente, tome los tiempos de \texttt{construcción + búsqueda} en cada uno de los métodos y compárelos. Repita estos procesos (construcción y búsqueda) para obtener promedios confiables para los tiempos registrados.\\
+Note que tiene libertad para escoger los textos que utilizará: de esta forma, puede escogerlos para ayudarse a poner a prueba su hipótesis, si fuera necesario. Otro grado de libertad es el tamaño del alfabeto con el que trabajará (por ejemplo, puede comparar lo que sucede al utilizar lenguaje natural versus binario).
+\newpage
+\section{Entrega de la Tarea}
+\begin{itemize}
+    \item La tarea puede realizarse en grupos de a lo más 2 personas.
+    \item No se permiten atrasos.
+    \item Para la implementación puede utilizar C, C++ o Java. Para el informe se recomienda utilizar \LaTeX .
+    \item Siga buenas prácticas (good coding practices) en sus implementaciones.
+    \item Escriba un informe claro y conciso. Las ponderaciones del informe y la implementación en su nota final son las mismas.
+    \item Tenga en cuenta las sugerencias realizadas en la primera clase auxiliar y en los archivos subidos a U-Cursos sobre la forma de realizar y presentar experimentos.
+    \item La entrega será a través de U-Cursos y deberá incluir el informe junto con el código fuente de la implementación (y todas las indicaciones necesarias para su ejecución).
+\end{itemize}
+\section{Links}
+\begin{itemize}
+    \item En \href{http://www.gutenberg.org}{http://www.gutenberg.org} puede encontrar una gran cantidad de documentos.
+    \item Otra fuente de datos: \href{http://pizzachili.dcc.uchile.cl/texts/nlang/}{http://pizzachili.dcc.uchile.cl/texts/nlang/} de lenguaje natural.
+    \item Paper original de construcción de Suffix Array en tiempo lineal:\\ \href{http://web.cs.iastate.edu/~cs548/references/arkk03simple.pdf}{http://web.cs.iastate.edu/$\sim$cs548/references/arkk03simple.pdf}
+    \item Presentación donde se explica Suffix Array y construcción en tiempo lineal:\\
+    \href{http://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/suffixarrays.pdf}{http://www.cs.cmu.edu/$\sim$ckingsf/bioinfo-lectures/suffixarrays.pdf}
+    \item Presentación donde se explica el algoritmo con autómata optimizado con un ejemplo:\\
+    \href{http://www.cs.princeton.edu/courses/archive/spring11/cos226/demo/53KnuthMorrisPratt.pdf}{http://www.cs.princeton.edu/courses/archive/spring11/cos226/demo/53KnuthMorrisPratt.pdf}  \footnote{No confundir el algoritmo de Knuth-Morris-Pratt , presentado en:\\ \href{https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Knuth77.pdf}{https://www.cs.jhu.edu/$\sim$misha/ReadingSeminar/Papers/Knuth77.pdf} , con  el \textbf{algoritmo con autómata} optimizado pedido en esta tarea, el primero toma tiempo $\mathcal{O}(m)$ independiente del alfabeto $\Sigma$.}
+\end{itemize}
+
+
+
+\end{document}
+

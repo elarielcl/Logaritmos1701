@@ -1,0 +1,153 @@
+\documentclass[dcc,uchile]{fcfmcourse}
+\usepackage{teoria}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts,setspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{emojis}
+
+
+
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{porange}{rgb}{0.9,0.5,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{porange},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pgreen},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$ $},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\newenvironment{codebox} {\small \ttfamily \obeylines \begingroup \setstretch{-2.4}} {\endgroup}
+
+% COmpletar titulo
+\title{Auxiliar 3 - ``Costo Promedio"}
+\course[CC4102]{Diseño y Análisis de Algoritmos}
+\professor{Pablo Barceló}
+\assistant{\textst{Manuel} Ariel Cáceres Reyes}
+
+
+\begin{document}
+\maketitle
+\begin{center}
+07 de Abril del 2017
+\end{center}
+\vspace{-1ex}
+
+
+\begin{problems}
+%Bienvenida
+
+\problem {\large\underline{\textbf{Shuffle}}}\\
+El análisis probabilístico de los algoritmos nos permite estudiar su comportamiento promedio asumiendo cierta distribución en la entrada. Por otro lado, los algoritmos aleatorizados son algoritmos a los que se les introduce una componente aleatoria.\\ Un procedimiento estándar en los algoritmos aleatorizados consiste en generar una permutación al azar (escogida uniformemente entre las permutaciones de $n$ elementos) de los elementos de una lista o ``shuffle''.\\
+Considere el problema de ``shuffle'' sobre una lista de enteros $A[0,\ldots,n-1]$
+\begin{enumerate}[a)]
+    \item Muestre un algoritmo de costo $\mathcal{O}(n^2)$.
+    \item Muestre un algoritmo de costo $\mathcal{O}(n\log n)$.
+    \item Muestre un algoritmo que sea \textit{in-place} y de costo $\mathcal{O}(n)$.\\ Demuestre su correctitud.
+\end{enumerate}
+\problem {\large\underline{\textbf{InsertionSort}}}\\
+Una inversión en un arreglo corresponde a un par de elementos $A[i] > A[j]$ con $i < j$.\\
+Supongamos que los elementos de $A[1, n]$ vienen
+dados por una permutación aleatoria $\Pi$ de $\{1,\ldots, n\}$. 
+\begin{enumerate}[a)]
+    \item Calcule la cantidad esperada de inversiones en $A[1, n]$.
+    \item Utilice la parte anterior para demostrar que el número promedio de intercambios en InsertionSort es $\mathcal{O}(n^2)$
+\end{enumerate}
+\problem {\large\underline{\textbf{Codificación de Huffman}}}\\
+Supongamos que tenemos las probabilidades $\{p_{1},\ldots, p_{n}\}$, tales que $\sum_{i=1}^n p_{i} = 1$. El algoritmo de Huffman construye un árbol binario que tiene estas probabilidades en sus hojas y minimiza $\sum_{i=1}^n p_{i}n_{i}$, donde $n_{i}$ es la profundidad de $p_{i}$ en el árbol.
+\begin{enumerate}[a)]
+\item Escriba en pseudocódigo el algoritmo
+\item ¿Cómo implementaría el algoritmo para que tuviera costo $\mathcal{O}(n\log n)$?
+\item Suponga ahora que las probabilidades vienen ordenadas de forma creciente. ¿Cómo implementaría el algoritmo para que tuviera costo $\mathcal{O}(n)$?
+\item Demuestre la correctitud del algoritmo 
+\end{enumerate}
+\end{problems}
+\newpage
+\begin{center}
+{\huge \underline{Soluciones}}
+\end{center}
+\begin{problems}
+\problem {\large\underline{\textbf{Shuffle}}}\\
+\begin{enumerate}[a)]
+    \item 
+    \item 
+    \item El siguiente código en ``Python'' es \textit{in-place} y de costo lineal:
+        \begin{lstlisting}[language=Python]
+            for i in range(n):
+                r = randint(i,n)
+                a[i], a[r] = a[r], a[i]
+        \end{lstlisting}
+        Para mostrar que genera una permutación al azar uniformemente entre todas las permutaciones, se demostrará lo siguiente:
+        \begin{center}
+        ``Después de la i-ésima iteración el arreglo $a[1,\ldots,i]$ es cada i-permutación de $a$ con probabilidad $\frac{(n-i)!}{n!}$''
+        \end{center}
+        Si lo anterior es cierto entonces después de la última iteración se cumplirá que $a$ es cada permutación de $a$ con probabilidad $\frac{(n-n)!}{n!} = \frac{1}{n!}$, que es precisamente lo que bucamos.\\
+        
+        La demostración es por inducción en $i$. El caso base $i=1$ nos dice que después de la primera iteración $a[1]$ es cada elemento (1 permutaciones) de $a$ con probabilidad $\frac{(n-1)!}{n!} = \frac{1}{n}$, lo que es cierto pues en esa iteración $a[1]$ se intercambia uniformemente con alguno de los elementos de $a$. Para el paso inductivo asumamos el enunciado cierto para valores menores a $i$ y consideremos la probabilidad:
+        \begin{equation*}
+            \mathbb{P}\left(a[1,\ldots,i]\ es\ x_{1},\ldots,x_{i}\right)
+        \end{equation*}
+        , donde $x_{1},\ldots,x_{i}$ es alguna i-permutación de $a$.\\
+        Veamos que para que lo anterior sea cierto se tiene que cumplir que en la (i-1)-ésima iteración $a[1,\ldots,i-1]$ haya sido $x_{1},\ldots,x_{i-1}$ y en la i-ésima  el algoritmo puso $x_{i}$ en $a[i]$. Por lo que la probabilidad anterior es igual a :
+        \begin{equation*}
+            \mathbb{P}\left(a[1,\ldots,i-1]\ es\ x_{1},\ldots,x_{i-1} \land \text{$x_{i}$ es puesto en $a[i]$}\right)
+        \end{equation*}
+        Ahora notemos que estos eventos no son independientes (piense en que si no se supiese que $a[1,\ldots,i-1]$ es $x_{1},\ldots,x_{i-1}$ , entonces $x_{i}$ podría estar allí y en ese caso la probabilidad de que sea puesto en $a[i]$ es 0, dado que el algoritmo solo busca intercambios hacia adelante). Entonces usamos probabilidad condicionada de modo que lo anterior es:
+        \begin{equation*}
+            \mathbb{P}\left(\text{$x_{i}$ es puesto en $a[i]$}\ |\ a[1,\ldots,i-1]\ es\ x_{1},\ldots,x_{i-1}\right) \cdot \mathbb{P}\left(a[1,\ldots,i-1]\ es\ x_{1},\ldots,x_{i-1}\right)
+        \end{equation*}
+        Pero lo primero es la probabilidad de escoger $x_{i}$ uniformemente entre las $n-i+1$ posibilidades que hay hacia adelante y lo segundo es nuestra hipótesis inductiva lo que queda:
+        \begin{align*}
+            \frac{1}{n-i+1}\cdot\frac{(n-(i-1))!}{n!} &= \frac{1}{n-i+1}\cdot\frac{(n-i+1)!}{n!}\\
+            &= \frac{(n-i)!}{n!}
+        \end{align*}
+\end{enumerate}
+\problem {\large\underline{\textbf{InsertionSort}}}\\
+
+\problem {\large\underline{\textbf{Codificación de Huffman}}}\\
+\end{problems}
+\begin{enumerate}[a)]
+    \item
+    \item
+    \item 
+    \item Para demostrar la correctitud de Huffman demostraremos lo siguiente:
+    \begin{center}
+    ``Dado un conjunto de $i$ probabilidades, el algoritmo de Huffman construye un código óptimo'' \footnote{Para demostrar que el código construído es óptimo veremos que su largo esperado es $\le$ al de algún otro código óptimo.}
+    \end{center}
+    Por inducción en $i$. En el caso base $i=2$ Huffman entrega el único árbol que representa un código libre de prefijos, por lo que este es óptimo. Para el paso inductivo asumiremos el enunciado cierto para valores menores a $i$.\\
+    Sea $T_{H}$ el árbol entregado por el algoritmo de Huffman corrido sobre las probabilidades $p_{1},\ldots,p_{i}$ y definamos el peso del árbol $W(T_{H})$ como el largo esperado de la codificación, es decir $\sum_{j=1}^i p_{j}n_{j}$. Supongamos ahora que $p_{l}$ y $p_{m}$ son los primeros 2 símbolos escogidos por Huffman (es decir los dos menores) y sea $T_{H}^*$ el árbol de aplicar Huffman sobre las probabilidades $\{p_{1},\ldots,p_{i}, p_{l}+p_{m}\}\setminus\{p_{l}, p_{m}\}$ que por hipótesis inductiva ($i-1$ probabilidades) es óptimo.\\
+    
+    Notemos ahora que se cumple $W(T_{H}) = W(T_{H}^*) + (p_{l}+p_{m})$, puesto que correr el algoritmo sobre las nuevas probabilidades es lo mismo que correrlo sobre las antiguas a partir de la segunda iteración y además este nuevo nodo $p_{l}+p_{m}$ estará un nivel más arriba que los dos nodos $p_{l}$ y $p_{m}$.\\
+    
+    Ahora consideremos un árbol óptimo $T$ para las probabilidades  $p_{1},\ldots,p_{i}$ de altura $h$. Notemos que tanto $p_{l}$ como $p_{m}$ deben estar ambos a profundidad $h$, pues:
+    \begin{itemize}
+        \item Si ambos están a una profundidad $<h$ podría cambiar cualquiera de ellos con un nodo de profundidad $h$ generando un árbol de menor (contradicción con que $T$ es óptimo) o igual (renombro $T$ de modo que el nuevo $T$ también es óptimo) $W$.
+        \item Si solo uno de ellos está a profundidad $h$ significaría que es el único a profundidad $h$ (si no intercambio el otro con el que no está a profundidad $h$ generando un árbol de menor (contradicción con que $T$ es óptimo) o igual (renombro $T$ de modo que el nuevo $T$ también es óptimo) $W$), pero esto es una contradicción pues podría quitarle un bit a su codificación y obtener un árbol de peso menor.
+    \end{itemize}
+    
+    Asumamos ahora que $p_{l}$ y $p_{m}$ son hermanos en $T$ (si no lo fuesen intercambiamos al hermano de $p_{l}$ por $p_{m}$ renombrando $T$ y obteniendo un nuevo $T$ que también es óptimo). Consideremos además el árbol $T^*$ obtenido de reemplazar el padre de $p_{l}$ y $p_{m}$ por el nodo $p_{m}+p_{l}$. Con un razonamiento análogo al anterior obtenemos que $W(T) = W(T^*) + (p_{l}+p_{m})$.\\
+    
+    Finalmente como $T_H^*$ es óptimo (por H.I.), se cumple que:
+    \begin{align*}
+        W(T_H^*) &\le W(T^*) \\
+        W(T_H^*) + (p_{l}+p_{m}) &\le W(T^*) + (p_{l}+p_{m})\\
+        W(T_H) &\le W(T)
+    \end{align*}
+    Y como $T$ es óptimo $T_H$, el árbol generado por Huffman, también lo será.
+\end{enumerate}
+\end{document}
+

@@ -1,0 +1,31 @@
+\documentclass[border=10pt,tikz]{standalone}
+\usepackage{forest}
+\usetikzlibrary{positioning}
+
+\begin{document}
+
+\Forest{
+for tree={circle,draw, l sep=20pt, s sep=40pt}
+  [2, tikz={\node[inner sep=.15ex, right=0pt of .east]  {\small$w_{2}=10$\normalsize};} 
+    [1 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{1}=1$\normalsize};}] 
+    [4 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{4}=9$\normalsize};}
+        [3 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{3}=8$\normalsize};}]
+        []
+    ]
+  ]
+}
+
+\Forest{
+for tree={circle,draw, l sep=20pt, s sep=40pt}
+  [3, tikz={\node[inner sep=.15ex, right=0pt of .east]  {\small$w_{3}=8$\normalsize};} 
+    [2 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{2}=10$\normalsize};}
+        [1 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{1}=1$\normalsize};}]
+        []
+    ] 
+    [4 ,tikz={\node[inner sep=.15ex, right=0pt of .east] {\small$w_{4}=9$\normalsize};}]
+  ]
+}
+
+\end{document}
+
+
