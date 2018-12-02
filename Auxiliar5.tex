@@ -103,20 +103,62 @@ Se usará $ca$ para denotar costo amortizado y $cr$ para denotar costo real.
 \problem {\large\underline{\textbf{Doubling and halving}}}\\
 \begin{enumerate}[a)]
     \item Si consideramos un arreglo a punto de ser llenado e insertamos un elemento, entonces generamos un doubling, si luego de esto eliminamos un elemento generamos un halving, cada uno de los cuales tiene costo $\mathcal{O}(n)$, por lo que si repetimos estas operaciones tanto como queramos es imposible obtener coste $\mathcal{O}(1)$ amortizado de ellas.
-    \item Veamos que tanto luego de un doubling como de un halving el arreglo queda a la mitad de su capacidad 
+    \item Veamos que tanto luego de un doubling como de un halving el arreglo queda a la mitad de su capacidad. Sea $n_i$ la cantidad de elementos del arreglo luego de la i-ésima operación y $m_i$ la capacidad de la estructura.
     \begin{itemize}
-        \item Por lo tanto tiene que hacer al menos $m/2$ (siendo $m$ la capacidad y $n$ el número de elementos) eliminaciones o $m$ inserciones para tener un resize nuevamente. De este modo, haremos que estas operaciones paguen por $2$ por el proximo resize, pues si es un doubling necesito $m$ (que los tengo de los $m/2$ pagos de las inserciones), y si hago un halving necesito $m/2$ (que los tengo de los pagos de las $m/4$ eliminaciones anteriores). De este modo alcanzamos un coste amortizado de $\mathcal{O}(1)$ en todas sus operaciones.
+        \item Por lo tanto tiene que hacer al menos $n/2$  eliminaciones o $n$ inserciones para tener un resize nuevamente. De este modo, haremos que estas operaciones paguen por el próximo resize.
+        
+        Cobraremos 3 fichas por cada inserción, de este modo, cuando tengamos que hacer un doubling, tendremos como mínimo $n=m$ guardadas en el banco. De este modo, siempre tendremos guardadas suficientes fichas para pagar por el relocamiento de todos los elementos.
+        
+        Al borrar, podemos cobrar 2 fichas. Cuando necesitemos realizar un halving, tendremos $m/4$ fichas guardadas, que nos bastan para mover los $n=m/4$ elementos del arreglo. 
+        
         \item Si consideramos el potencial:
         \begin{align*}
             \phi =
             \begin{cases}
             2n - m & n\ge m/2\\
-            m - 2n & n < m/2
+            m/2 - n & n < m/2
             \end{cases}
         \end{align*}
-        Se puede comprobar que tanto para las inserciones como las eliminaciones se cumple que $\Delta \phi \le 2$ por lo que el costo amortizado de estas operaciones es $\mathcal{O}(1)$. Por otro lado, cuando ocurre un resize la situación final siempre deja el potencial en $0$ (pues $n=m/2$) y las situaciones iniciales son $\phi = m$ en el caso de doubling y $\phi = m/2$ en el caso de halving que es exactamente el costo de estas operaciones, alcanzando así un costo amortizado $0$ y por lo tanto un costo amortizado de todas las operaciones de $\mathcal{O}(1)$.
+        Se puede comprobar que este potencial cumple con los requisitos: 
+        
+        $\phi_0 = 0$, es el caso en el cual la tabla está vacía y por lo tanto $n=m=0$. También se tiene que $\phi(T)\ge 0$.
+        
+        Definamos $n_i, m_i$ la cantidad de elementos almacenados y el tamaño de la tabla después de $i$ operaciones, respectivamente.
+        Veamos cómo se comporta $\phi$  
+        \begin{itemize}
+            \item Si $n=m/2$, $\phi(T)=0$ Eso ocurre justo después de un \textit{resize}
+            \item Si $n=m$, $\phi(T)=n$ Eso ocurre justo antes de un \textit{doubling}
+            \item Si $n=m/4$, $\phi(T)=m/2-m/4=m/4=n$ Eso ocurre justo antes de un \textit{halving}
+        \end{itemize}
+        
+        Con esta información, calculemos el costo amortizado de la i-ésima operación.
+        
+        Si i-ésima operación es inserción:
+        \begin{itemize}
+            \item Hay expansión \\ $\^c_i=c_i + \phi_i - \phi_{i-1} = n_i + 0 - n_i = 0$
+            \item $n_{i-1}\ge m_{i-1}/2$ pero no ocurre doubling \\ 
+             $\^c_i=c_i + \phi_i - \phi_{i-1} = 1+2n_i-m_i-2n_{i-1}+m_{i-1}=1+2n_{i-1}+2-2n_{i-1}=3$
+             \item $n_{i}< \frac{m_{i}}{2}$ \\
+             $\^c_i=c_i + \phi_i - \phi_{i-1} = 1+\frac{m_{i}}{2}-n_i-\frac{m_{i-1}}{2}+n_{i-1}=1-(n_{i-1}+1)+n_{i-1}=0$
+             \item y que pasa en el caso borde $n_{i-1} < \frac{m_{i-1}}{2}$ y $n_{i}\ge\frac{m_{i}}{2}$ \\
+              $\^c_i=c_i + \phi_i - \phi_{i-1} = 1 + 2n_i - m_i - \frac{m_{i-1}}{2} + n_{i-1}= 1+2n_{i-1}+2-\frac{3m_{i-1}}{2} + n_{i-1} = 3+3n_{i-1} - \frac{3m_{i-1}}{2} < 3 + \frac{3m_{i-1}}{2} - \frac{3m_{i-1}}{2} = 3$
+        \end{itemize}
+        
+        Si i-ésima operación es borrar:
+        \begin{itemize}
+            \item Hay halving \\
+             $\^c_i=c_i + \phi_i - \phi_{i-1} = n_i + 1 + 0 - n_{i-1} = n_i + 1 - (n_i + 1) = 0 $
+             \item $n_i < \frac{m_i}{2}$ y no hay halving \\
+              $\^c_i=c_i + \phi_i - \phi_{i-1} =  + \frac{m_i}{2} - n_i - \frac{m_{i-1}}{2}+n_{i-1} = 1 - n_i + n_i + 1=2$
+              \item $n_i \ge \frac{m_i}{2}$
+               $\^c_i=c_i + \phi_i - \phi_{i-1} = 1 + 2n_i - m_i -2n_{i-1} + m_{i-1} = 1 + 2n_i - 2n_{i-1} = 1 + 2 = 3 $
+               \item $n_i < \frac{m_i}{2} $ y $n_{i-1} \ge \frac{m_{i-1}}{2}$ \\
+                $\^c_i=c_i + \phi_i - \phi_{i-1} = 1 + \frac{m_i}{2} - n_i -2n_{i-1} ++ m_{i-1} = 1 + \frac{3m_i}{2} - n_i - 2(n_i +1) = \frac{3m_i}{2} - 3n_i - 1 < \frac{3m_i}{2} - \frac{3m_i}{2} - 1 = -1 $
+            
+        \end{itemize}
     \end{itemize}
 \end{enumerate}
+
 \problem {\large\underline{\textbf{Estructura de datos}}}\\
 Usamos una lista enlazada para mantener los elementos, lo que nos da inserción en tiempo constante (insertando al final de la lista por ejemplo). Si queremos eliminar la mitad de elementos más pequeña, primero encontramos la mediana en $\mathcal{O}(n)$ (con el algoritmo \textit{mediana de medianas} visto en cátedras) y hacemos una pasada lineal por la lista eliminando los elementos menores a ella, lo que tiene un costo total de $\mathcal{O}(n)$.\\
 
